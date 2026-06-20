@@ -305,7 +305,7 @@ tr:hover td{background:#f8fafc;}
     .then(function(r){return r.json();})
     .then(function(d){
       var el=document.getElementById('visitorBadge');
-      if(el && d && d.count!=null) el.textContent='👁 Visitors: '+d.count.toLocaleString();
+      if(el && d && d.count!=null) el.textContent='\ud83d\udc41 Visitors: '+d.count.toLocaleString();
     })
     .catch(function(){});
 })();
@@ -1356,4 +1356,8 @@ function goRvPage(n){if(n<1||n>Math.ceil(rvFiltered.length/RV_PAGE_SIZE)) return
 document.getElementById('sort-avg_final').textContent='↓';
 applyFilters();
 // Load retraining iframe on startup (it's the default tab)
-(function(){var b=new Blob([RETRAINING_HTML],{type:'text/html'});document.getElementById('retrainingFrame').
+(function(){var b=new Blob([RETRAINING_HTML],{type:'text/html'});document.getElementById('retrainingFrame').src=URL.createObjectURL(b);})();
+</script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3fe4a7934b9e4eeba80054f721cb1d5c"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
