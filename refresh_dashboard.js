@@ -18,6 +18,22 @@ const DIR           = __dirname;
 const DATA_JS       = path.join(DIR, 'dashboard_data.js');
 const TRAINER_JS    = path.join(DIR, 'trainer_data.js');
 const TRAINER_CSV   = path.join(DIR, 'trainer_sheet.csv');
+
+// ── GitHub Auto-Deploy Config ────────────────────────────────
+// After each data refresh, updated files are pushed to GitHub so
+// Netlify auto-deploys and https://retrainingf10dashboard.netlify.app
+// always shows the same fresh data as localhost.
+//
+// HOW TO GET YOUR TOKEN:
+//   1. Go to https://github.com/settings/tokens
+//   2. Click "Generate new token (classic)"
+//   3. Give it a name (e.g. "F10 Dashboard Auto-Deploy")
+//   4. Check the "repo" scope (Full control of private repositories)
+//   5. Click "Generate token" and paste it below
+//
+const GITHUB_TOKEN = '';          // ← Paste your GitHub Personal Access Token here
+const GITHUB_OWNER = 'kumarkartikey2609';
+const GITHUB_REPO  = 'f10-retraining-dashboard';
 const DASHBOARD     = 'F10_Partner_Performance_Dashboard.html';
 const PORT          = 3456;
 
@@ -52,6 +68,75 @@ function apiRequest(method, urlPath, body) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── GitHub API helpers ───────────────────────────────────────
+function githubRequest(method, apiPath, body) {
+  return new Promise((resolve, reject) => {
+    const data = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: 'api.github.com',
+      path: apiPath,
+      method,
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'F10-Dashboard-Auto-Deploy',
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {})
+      }
+    };
+    const req = https.request(options, res => {
+      let raw = '';
+      res.on('data', c => raw += c);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(raw) }); }
+        catch(e) { resolve({ status: res.statusCode, body: raw }); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, () => { req.destroy(); reject(new Error('GitHub API timeout')); });
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+async function pushFileToGitHub(repoFilename, localFilePath, commitMsg) {
+  if (!GITHUB_TOKEN) {
+    console.log(`   ⚠️  GITHUB_TOKEN not set — skipping auto-deploy of ${repoFilename}`);
+    console.log('      Set your token in refresh_dashboard.js to enable Netlify auto-sync.');
+    return false;
+  }
+  try {
+    const content = fs.readFileSync(localFilePath, 'utf8');
+    const base64Content = Buffer.from(content, 'utf8').toString('base64');
+    const apiPath = `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoFilename}`;
+
+    // Get current file SHA (needed to update existing files)
+    let sha = null;
+    const getRes = await githubRequest('GET', apiPath, null);
+    if (getRes.status === 200 && getRes.body.sha) {
+      sha = getRes.body.sha;
+    }
+
+    const putRes = await githubRequest('PUT', apiPath, {
+      message: commitMsg,
+      content: base64Content,
+      ...(sha ? { sha } : {})
+    });
+
+    if (putRes.status === 200 || putRes.status === 201) {
+      console.log(`   ✅ ${repoFilename} → GitHub (Netlify will auto-deploy in ~10s)`);
+      return true;
+    } else {
+      console.log(`   ⚠️  GitHub rejected ${repoFilename}: HTTP ${putRes.status}`);
+      if (putRes.body && putRes.body.message) console.log(`      ${putRes.body.message}`);
+      return false;
+    }
+  } catch(e) {
+    console.log(`   ⚠️  Could not push ${repoFilename}: ${e.message}`);
+    return false;
+  }
+}
 
 async function triggerRefresh() {
   try {
@@ -359,18 +444,33 @@ async function main() {
     saveData(result.rows, result.retrieved_at);
   }
 
+  // Auto-deploy to GitHub → Netlify
+  console.log('\n[2/4] Pushing updated data to GitHub → Netlify...');
+  const hostedDest = path.join(DIR, 'F10_Dashboard_Hosted.html');
+  const f10PartnerDest = path.join(DIR, 'F10_Partner_Performance_Dashboard.html');
+  const timestamp = new Date().toUTCString();
+  const commitMsg = `Auto-update: data refreshed ${timestamp}`;
+
+  // Push dashboard_data.js (used by f10-partner.html on Netlify)
+  await pushFileToGitHub('dashboard_data.js', DATA_JS, commitMsg);
+
+  // Push rebuilt index.html (the retraining dashboard with data inlined)
+  if (fs.existsSync(hostedDest)) {
+    await pushFileToGitHub('index.html', hostedDest, commitMsg);
+  }
+
   // Check for manually-downloaded CSV
-  console.log('\n[2/3] Checking for trainer_sheet.csv...');
+  console.log('\n[3/4] Checking for trainer_sheet.csv...');
   if (processTrainerCsv()) {
     console.log('   Trainer data will load from trainer_data.js (skipping Apps Script fetch).');
   } else {
     console.log('   No trainer_sheet.csv found — Trainer tab will load from Apps Script URL (if configured).');
   }
 
-  console.log('\n[3/4] Starting local server...');
+  console.log('\n[4/5] Starting local server...');
   const server = await startServer();
 
-  console.log('\n[4/4] Opening dashboard...');
+  console.log('\n[5/5] Opening dashboard...');
   const url = `http://localhost:${PORT}/${DASHBOARD}`;
   const cmd = `start "" "${url}"`;
   exec(cmd);
