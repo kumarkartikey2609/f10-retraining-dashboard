@@ -1090,7 +1090,7 @@ function switchTab(tab, btn) {
   if (tab === 'retraining') {
     const frame = document.getElementById('retrainingFrame');
     if (!frame.src || frame.src === window.location.href || frame.src === 'about:blank') {
-      frame.src = (typeof RETRAINING_HTML !== 'undefined') ? URL.createObjectURL(new Blob([RETRAINING_HTML],{type:'text/html'})) : 'retraining_dashboard.html';
+      if(typeof RETRAINING_HTML!=='undefined'){frame.srcdoc=RETRAINING_HTML;}else{frame.src='retraining_dashboard.html';}
       // Detect if iframe failed to load
       frame.onerror = () => showRetrainFallback();
       setTimeout(() => {
@@ -1422,7 +1422,7 @@ function goRvPage(n){if(n<1||n>Math.ceil(rvFiltered.length/RV_PAGE_SIZE)) return
 document.getElementById('sort-avg_final').textContent='↓';
 applyFilters();
 // Load retraining iframe on startup (it's the default tab)
-(function(){const b=new Blob([RETRAINING_HTML],{type:'text/html'});document.getElementById('retrainingFrame').src=URL.createObjectURL(b);})();
+document.getElementById('retrainingFrame').srcdoc = RETRAINING_HTML;
 </script>
 </body>
 </html>
