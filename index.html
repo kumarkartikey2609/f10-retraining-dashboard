@@ -1242,11 +1242,11 @@ function renderTable(){
     if(isExp){
       html+=`<tr class="detail-row"><td colspan="7"><div class="detail-inner">
         <div class="detail-title">📋 Order Detail — ${p.provider_name}</div>
-        <table class="order-table"><thead><tr><th>Order #</th><th>Rating</th><th>Final</th><th>User Type</th><th>Punctuality</th><th>Customer Review</th><th>Booking Date</th></tr></thead><tbody>`;
+        <table class="order-table"><thead><tr><th>Order #</th><th>Rating (Hidden+Approved)</th><th>User Type</th><th>Punctuality</th><th>Customer Review</th><th>Booking Date</th></tr></thead><tbody>`;
       [...p.orders].sort((a,b)=>+a.R-+b.R).forEach(o=>{
         const rf=o.RATING_FINAL!==''?parseFloat(o.RATING_FINAL):null;
         const cls=rf===null?'':rf>=TARGET?'rating-high':rf>=4?'rating-mid':'rating-low';
-        html+=`<tr><td><strong>#${o.R}</strong></td><td>${o.RATING||'—'}</td>
+        html+=`<tr><td><strong>#${o.R}</strong></td>
           <td><span class="${cls}" style="font-weight:700">${rf!==null?rf.toFixed(1):'—'}</span></td>
           <td>${userTypeTag(o.USER_TYPE)}</td><td>${lateTag(o.LATE_SHOW_STATUS)}</td>
           <td style="max-width:280px;font-size:11px">${o.CUSTOMER_REVIEW||'<em style="color:#a0aec0">—</em>'}</td>
