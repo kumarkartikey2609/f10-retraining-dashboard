@@ -1090,7 +1090,7 @@ function switchTab(tab, btn) {
   if (tab === 'retraining') {
     const frame = document.getElementById('retrainingFrame');
     if (!frame.src || frame.src === window.location.href || frame.src === 'about:blank') {
-      frame.src = (typeof RETRAINING_HTML !== 'undefined') ? URL.createObjectURL(new Blob([RETRAINING_HTML],{type:'text/html'})) : 'retraining_dashboard.html';
+      frame.src=(typeof RETRAINING_HTML!=='undefined')?URL.createObjectURL(new Blob([RETRAINING_HTML],{type:'text/html'})):'retraining_dashboard.html';
       // Detect if iframe failed to load
       frame.onerror = () => showRetrainFallback();
       setTimeout(() => {
