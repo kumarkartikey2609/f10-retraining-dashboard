@@ -276,7 +276,8 @@ function fm(m){
 function cl(c){return CAT_MAP[c]||c;}
 var CC=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899'];
 var _saved=null;try{var _s=localStorage.getItem('retrain_data');if(_s){_saved=JSON.parse(_s);}}catch(e){}
-var allData=(_saved&&_saved.length?_saved:RAW).slice(), fd=[], sk='m', sa=false, pgN=0, PS=20, CH={};
+var ALLOWED_TR=['Justhine May Capao De Asis','Geraldine Obsid','Mary Rose Caleon','Jamaica Hernani','Hannah Regarde'];
+var allData=(_saved&&_saved.length?_saved:RAW).filter(function(r){return ALLOWED_TR.indexOf(r.t)>=0;}), fd=[], sk='m', sa=false, pgN=0, PS=20, CH={};
 var StY={}, StM={}, StT={};
 
 // ─── DROPDOWN ENGINE ───
@@ -622,11 +623,10 @@ function pgC(dir){var max=Math.ceil(fd.length/PS)-1;pgN=Math.max(0,Math.min(max,
 
 document.getElementById('csvInput').addEventListener('change',function(e){
   var file=e.target.files[0];if(!file)return;
-  var AT=['Kumar Kartikey','Hannah Regarde','Iris Baterna','Justhine May Capao De Asis','Geraldine Obsid','Jamaica Hernani','Mary Rose Caleon'];
   Papa.parse(file,{header:true,dynamicTyping:true,skipEmptyLines:true,complete:function(res){
     allData=res.data.filter(function(r){
       var t=(r.TRAINER_NAME||'').trim();
-      return t&&(AT.indexOf(t)>=0||true); // accept all rows, AT kept for reference
+      return t&&ALLOWED_TR.indexOf(t)>=0;
     }).map(function(r){
       return {i:String(r.PROVIDER_ID||''),n:String(r.PROVIDER_NAME||''),
         c:String(r['category::multi-filter']||r['category']||'').trim(),
