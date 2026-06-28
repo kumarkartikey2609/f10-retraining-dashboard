@@ -281,9 +281,9 @@ footer{text-align:center;padding:16px;color:#6d28d9;font-size:10px;border-top:1p
     <div class="note">Partners who have not yet received 10 ratings (RATED_COUNT &lt; 10) &mdash; still in progress.</div>
     <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
       <div class="kpi bl"><div class="kl">Under F10 Partners</div><div class="kv" id="t2-total">-</div><div class="ks">not yet 10 ratings</div></div>
-      <div class="kpi pu"><div class="kl">Avg Current Rating</div><div class="kv" id="t2-avg-rating">-</div><div class="ks">avg quality score</div></div>
-      <div class="kpi te"><div class="kl">Avg Ratings Received</div><div class="kv" id="t2-avg-count">-</div><div class="ks">out of 10 required</div></div>
-      <div class="kpi or"><div class="kl">Trainers Involved</div><div class="kv" id="t2-trainers">-</div><div class="ks">active trainers</div></div>
+      <div class="kpi gr"><div class="kl">On Track</div><div class="kv" id="t2-ontrack">-</div><div class="ks">&ge; 4.7 current rating</div></div>
+      <div class="kpi re"><div class="kl">Not On Track</div><div class="kv" id="t2-nottrack">-</div><div class="ks">&lt; 4.7 current rating</div></div>
+      <div class="kpi te"><div class="kl">On Track Rate</div><div class="kv" id="t2-rate">-</div><div class="ks">of under F10 partners</div></div>
     </div>
     <div class="scard">
       <div class="scard-title"><span class="sdot" style="background:#f59e0b"></span>Trainer Performance Summary <span class="count-lbl">(based on current ratings)</span></div>
@@ -524,9 +524,12 @@ function applyTab2(){
 function renderTab2(rows){
   var total=rows.length,rr=rows.filter(function(r){return r.curRating!==null;});
   countUp(document.getElementById('t2-total'),total);
-  document.getElementById('t2-avg-rating').textContent=rr.length>0?(rr.reduce(function(s,r){return s+r.curRating;},0)/rr.length).toFixed(2):'-';
-  document.getElementById('t2-avg-count').textContent=total>0?(rows.reduce(function(s,r){return s+r.ratedCount;},0)/total).toFixed(1):'-';
-  countUp(document.getElementById('t2-trainers'),new Set(rows.map(function(r){return r.trainer;})).size);
+  var onTrack=rows.filter(function(r){return r.curRating!==null&&r.curRating>=4.7;}).length;
+  var notTrack=total-onTrack;
+  var trackRate=total>0?Math.round(onTrack/total*100):0;
+  countUp(document.getElementById('t2-ontrack'),onTrack);
+  countUp(document.getElementById('t2-nottrack'),notTrack);
+  countUp(document.getElementById('t2-rate'),trackRate,'%');
   document.getElementById('t2-count').textContent=total+' partners';
   var tMap={};rows.forEach(function(r){if(!r.trainer)return;if(!tMap[r.trainer])tMap[r.trainer]={total:0,pass:0,fail:0};tMap[r.trainer].total++;(r.curRating!==null&&r.curRating>=4.7)?tMap[r.trainer].pass++:tMap[r.trainer].fail++;});
   var tNames=Object.keys(tMap).sort(function(a,b){return tMap[b].pass/tMap[b].total-tMap[a].pass/tMap[a].total;});
