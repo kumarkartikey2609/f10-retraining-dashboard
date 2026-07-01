@@ -660,7 +660,7 @@ function fm(m){
 }
 function cl(c){return CAT_MAP[c]||c;}
 var CC=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899'];
-var _saved=null;try{var _s=localStorage.getItem('retrain_data');if(_s){_saved=JSON.parse(_s);}}catch(e){}
+var _saved=null; // Always use embedded RAW data (auto-refreshed)
 var ALLOWED_TR=['Justhine May Capao De Asis','Geraldine Obsid','Mary Rose Caleon','Jamaica Hernani','Hannah Regarde'];
 var allData=(_saved&amp;&amp;_saved.length?_saved:RAW).filter(function(r){return ALLOWED_TR.indexOf(r.t)>=0;}), fd=[], sk='m', sa=false, pgN=0, PS=20, CH={};
 var StY={}, StM={}, StT={};
@@ -1020,8 +1020,7 @@ document.getElementById('csvInput').addEventListener('change',function(e){
         rc:parseInt(r.RATING_COUNT,10)||0,fr:parseFloat(r.F20RATING)||0,
         im:parseInt(r.IMPROVEMENT,10)||0};
     }).filter(function(r){return r.i||r.n;});
-    // Persist to localStorage so data survives page refresh
-    try{localStorage.setItem('retrain_data',JSON.stringify(allData));}catch(e){}
+    // Note: CSV data is session-only — auto-refresh keeps RAW current
     document.getElementById('dbadge').textContent='\u2713 '+allData.length.toLocaleString()+' rows (saved)';
     fd=allData.slice();pgN=0;applyF();
   }});
