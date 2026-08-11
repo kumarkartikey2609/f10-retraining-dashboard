@@ -121,6 +121,50 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 .rating-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;}
 .pct-bar{display:flex;align-items:center;gap:6px;}
 .pct-num{font-weight:800;font-size:13px;min-width:42px;}
+
+/* ── Trainer 3-tile columns ── */
+.tr-tiles-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;}
+@media(max-width:960px){.tr-tiles-wrap{grid-template-columns:1fr;}}
+.tr-tile-col{display:flex;flex-direction:column;}
+.tr-tile-col-hdr{color:#fff;border-radius:10px 10px 0 0;padding:13px 16px;font-weight:800;font-size:13px;letter-spacing:.4px;text-align:center;}
+.tr-tile-col-hdr.completed{background:linear-gradient(135deg,#065F46,#047857);}
+.tr-tile-col-hdr.under{background:linear-gradient(135deg,#92400E,#D97706);}
+.tr-tile-col-hdr.overall{background:linear-gradient(135deg,#5B21B6,#7C3AED);}
+.tr-tile-col-sub{font-size:10px;color:var(--muted);text-align:center;padding:5px 8px 8px;background:var(--bg);}
+.tr-tile-cards{display:flex;flex-direction:column;gap:8px;}
+.tr-card{background:var(--card);border-radius:10px;padding:13px 15px;border:1.5px solid var(--border);transition:box-shadow .15s;}
+.tr-card:hover{box-shadow:0 4px 16px rgba(124,58,237,.15);border-color:var(--pu3);}
+.tr-card-name{font-weight:800;font-size:13px;color:var(--dark);margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.tr-card-total{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.tr-card-total b{font-size:14px;color:var(--txt);}
+.tr-pct-row{display:flex;align-items:center;gap:7px;font-size:11px;margin-bottom:5px;}
+.tr-pct-label{width:32px;font-weight:700;}
+.tr-pct-label.pass{color:#065F46;} .tr-pct-label.fail{color:#B91C1C;}
+.tr-pct-bar-bg{flex:1;height:7px;background:#F3F4F6;border-radius:4px;overflow:hidden;}
+.tr-pct-bar-fill.pass{background:#10B981;height:100%;border-radius:4px;}
+.tr-pct-bar-fill.fail{background:#EF4444;height:100%;border-radius:4px;}
+.tr-pct-val{font-weight:800;font-size:11px;white-space:nowrap;min-width:75px;text-align:right;}
+.tr-pct-val.pass{color:#065F46;} .tr-pct-val.fail{color:#B91C1C;}
+.tr-tiles-empty{color:var(--muted);font-size:12px;text-align:center;padding:20px;background:var(--card);border-radius:10px;border:1.5px dashed var(--border);}
+/* ── Overview month table ── */
+.mo-tbl-wrap{overflow-x:auto;}
+.mo-tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.mo-tbl thead th{background:var(--dark);color:#fff;padding:8px 10px;text-align:center;white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:.2px;}
+.mo-tbl thead th.g1{background:#1E4A8A;} .mo-tbl thead th.g2{background:#7C2D12;}
+.mo-tbl thead th.g3{background:#14532D;} .mo-tbl thead th.g4{background:#7F1D1D;}
+.mo-tbl thead th.g5{background:#3B0764;} .mo-tbl thead th.g6{background:#4C1D95;}
+.mo-tbl tbody tr:nth-child(even){background:#FAFAFA;}
+.mo-tbl tbody tr:hover{background:var(--pu4);}
+.mo-tbl td{padding:8px 10px;border-bottom:1px solid #F0F0F0;text-align:center;vertical-align:middle;}
+.mo-tbl td.mo-name{text-align:left;font-weight:700;color:var(--dark);white-space:nowrap;padding-left:12px;}
+.mo-tbl .n-main{font-weight:800;font-size:13px;display:block;}
+.mo-tbl .n-pct{font-size:10px;color:var(--muted);display:block;margin-top:1px;}
+.mo-tbl td.g1 .n-main{color:#1E4A8A;} .mo-tbl td.g2 .n-main{color:#7C2D12;}
+.mo-tbl td.g3 .n-main{color:#14532D;} .mo-tbl td.g4 .n-main{color:#7F1D1D;}
+.mo-tbl td.g5 .n-main{color:#4C1D95;} .mo-tbl td.g6 .n-main{color:#5B21B6;}
+.mo-tbl tfoot td{background:#F5F3FF;font-weight:800;border-top:2px solid var(--pu3);padding:9px 10px;text-align:center;}
+.mo-tbl tfoot td.mo-name{text-align:left;color:var(--pu2);font-size:13px;padding-left:12px;}
+.mo-tbl tfoot .n-pct{color:var(--pu);}
 </style>
 </head>
 <body>
@@ -177,57 +221,74 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
     💾 Showing saved data from last fetch. Click <b>⟳ Fetch Latest Data</b> to refresh.
   </div>
   <div class="kpi-grid">
-    <div class="kpi gr"><div class="kpi-val" id="ov-total">—</div><div class="kpi-lbl">Total Partners</div><div class="kpi-sub" id="ov-total-sub"></div></div>
-    <div class="kpi"><div class="kpi-val" id="ov-pass">—</div><div class="kpi-lbl">F10 Passed</div><div class="kpi-sub" id="ov-pass-sub"></div></div>
-    <div class="kpi re"><div class="kpi-val" id="ov-fail">—</div><div class="kpi-lbl">Under F10</div><div class="kpi-sub" id="ov-fail-sub"></div></div>
-    <div class="kpi am"><div class="kpi-val" id="ov-rate">—</div><div class="kpi-lbl">Pass Rate</div><div class="kpi-sub" id="ov-rate-sub"></div></div>
-    <div class="kpi cy"><div class="kpi-val" id="ov-avg">—</div><div class="kpi-lbl">Avg F10 Rating</div><div class="kpi-sub" id="ov-avg-sub"></div></div>
-    <div class="kpi"><div class="kpi-val" id="ov-trainers">—</div><div class="kpi-lbl">Active Trainers</div><div class="kpi-sub" id="ov-trainers-sub"></div></div>
-  </div>
-  <div class="chart-grid">
-    <div class="chart-card"><div class="chart-hdr"><div><div class="chart-title">Pass vs Under F10</div><div class="chart-note">Based on F10_RESULT</div></div></div><div class="chart-wrap short"><canvas id="ov-donut"></canvas></div></div>
-    <div class="chart-card"><div class="chart-hdr"><div><div class="chart-title">Pass Rate by Trainer</div></div></div><div class="chart-wrap"><canvas id="ov-trainer-bar"></canvas></div></div>
-    <div class="chart-card wide"><div class="chart-hdr"><div><div class="chart-title">Monthly Trend</div><div class="chart-note">Click bar → filter Raw Data</div></div></div><div class="chart-wrap"><canvas id="ov-month-bar"></canvas></div></div>
-  </div>
-</div>
-
-<!-- TRAINER (horizontal table) -->
-<div class="tab-panel" id="panel-trainer" style="display:none">
-  <div class="sec-hdr">
-    <div class="sec-title">👤 Trainer Performance</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <div class="seg-bar">
-        <button class="seg active" onclick="setTrainerSeg('all',this)">All</button>
-        <button class="seg pass"   onclick="setTrainerSeg('pass',this)">Passed F10</button>
-        <button class="seg fail"   onclick="setTrainerSeg('fail',this)">Under F10</button>
-      </div>
-      <input class="search-inp" id="trSearch" placeholder="🔍 Search trainer…" oninput="renderTrainer()" style="width:180px">
-    </div>
+    <div class="kpi gr"><div class="kpi-val" id="ov-total">—</div><div class="kpi-lbl">Total F10 Partners</div><div class="kpi-sub" id="ov-total-sub"></div></div>
+    <div class="kpi"><div class="kpi-val" id="ov-completed">—</div><div class="kpi-lbl">F10 Completed</div><div class="kpi-sub" id="ov-completed-sub">≥10 ratings</div></div>
+    <div class="kpi am"><div class="kpi-val" id="ov-under">—</div><div class="kpi-lbl">Under F10</div><div class="kpi-sub" id="ov-under-sub">&lt;10 ratings</div></div>
+    <div class="kpi"><div class="kpi-val" id="ov-pass">—</div><div class="kpi-lbl">F10 Pass (Result)</div><div class="kpi-sub" id="ov-pass-sub">≥4.70 rating</div></div>
+    <div class="kpi re"><div class="kpi-val" id="ov-fail">—</div><div class="kpi-lbl">F10 Fail (Result)</div><div class="kpi-sub" id="ov-fail-sub">&lt;4.70 rating</div></div>
+    <div class="kpi cy"><div class="kpi-val" id="ov-trainers">—</div><div class="kpi-lbl">Active Trainers</div><div class="kpi-sub" id="ov-trainers-sub"></div></div>
   </div>
   <div class="tbl-card" style="margin-bottom:0">
     <div class="tbl-hdr">
       <div>
-        <div class="tbl-title" id="tr-tbl-title">All Partners — Trainer Performance</div>
-        <div class="tr-meta" id="tr-row-count" style="margin-top:4px"></div>
+        <div class="tbl-title">📅 Month-wise F10 Performance <span style="color:var(--muted);font-weight:400;font-size:11px">(Jan 2026 onwards)</span></div>
+        <div class="chart-note" style="margin-top:3px">F10 Completed = ≥10 ratings &nbsp;·&nbsp; Pass/Fail = F10_RESULT ≥4.70</div>
       </div>
+      <button class="export-btn" onclick="exportOverviewCSV()">⬇ Export</button>
+    </div>
+    <div class="mo-tbl-wrap">
+      <table class="mo-tbl">
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align:left;padding-left:12px;min-width:80px">Month</th>
+            <th rowspan="2">Total<br>Partners</th>
+            <th colspan="2" class="g1" style="border-left:2px solid rgba(255,255,255,.2)">F10 Completed</th>
+            <th colspan="2" class="g2" style="border-left:2px solid rgba(255,255,255,.2)">Under F10</th>
+            <th colspan="2" class="g3" style="border-left:2px solid rgba(255,255,255,.2)">Completed — Pass</th>
+            <th colspan="2" class="g4" style="border-left:2px solid rgba(255,255,255,.2)">Completed — Fail</th>
+            <th colspan="2" class="g5" style="border-left:2px solid rgba(255,255,255,.2)">Overall Pass</th>
+            <th colspan="2" class="g6" style="border-left:2px solid rgba(255,255,255,.2)">Overall Fail</th>
+          </tr>
+          <tr>
+            <th class="g1">Count</th><th class="g1">% of Total</th>
+            <th class="g2">Count</th><th class="g2">% of Total</th>
+            <th class="g3">Count</th><th class="g3">% of Completed</th>
+            <th class="g4">Count</th><th class="g4">% of Completed</th>
+            <th class="g5">Count</th><th class="g5">% of Total</th>
+            <th class="g6">Count</th><th class="g6">% of Total</th>
+          </tr>
+        </thead>
+        <tbody id="ov-mo-tbody"></tbody>
+        <tfoot id="ov-mo-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TRAINER (three tile columns) -->
+<div class="tab-panel" id="panel-trainer" style="display:none">
+  <div class="sec-hdr">
+    <div class="sec-title">👤 Trainer Performance</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <input class="search-inp" id="trSearch" placeholder="🔍 Search trainer…" oninput="renderTrainer()" style="width:200px">
       <button class="export-btn" onclick="exportTrainerCSV()">⬇ Export</button>
     </div>
-    <div class="tbl-wrap">
-      <table class="tr-grid">
-        <thead><tr>
-          <th onclick="sortTbl('trainer','RANK')" style="width:40px"># ↕</th>
-          <th onclick="sortTbl('trainer','DIM')">Trainer ↕</th>
-          <th onclick="sortTbl('trainer','TOTAL')" class="num">Total ↕</th>
-          <th onclick="sortTbl('trainer','PASS')" class="num">Passed ↕</th>
-          <th onclick="sortTbl('trainer','FAIL')" class="num">Under F10 ↕</th>
-          <th onclick="sortTbl('trainer','PASS_RATE')">Pass Rate ↕</th>
-          <th onclick="sortTbl('trainer','AVG_RATING')" class="num">Avg Rating ↕</th>
-          <th>Cities Covered</th>
-          <th>Modules</th>
-          <th>Action</th>
-        </tr></thead>
-        <tbody id="tr-tbody"></tbody>
-      </table>
+  </div>
+  <div class="tr-tiles-wrap">
+    <div class="tr-tile-col">
+      <div class="tr-tile-col-hdr completed">✅ F10 Completed</div>
+      <div class="tr-tile-col-sub" id="tr-completed-count">Partners with ≥ 10 F10 ratings</div>
+      <div class="tr-tile-cards" id="tr-completed-tiles"></div>
+    </div>
+    <div class="tr-tile-col">
+      <div class="tr-tile-col-hdr under">⏳ Under F10</div>
+      <div class="tr-tile-col-sub" id="tr-under-count">Partners with &lt; 10 F10 ratings</div>
+      <div class="tr-tile-cards" id="tr-under-tiles"></div>
+    </div>
+    <div class="tr-tile-col">
+      <div class="tr-tile-col-hdr overall">📊 Overall</div>
+      <div class="tr-tile-col-sub" id="tr-overall-count">All partners combined</div>
+      <div class="tr-tile-cards" id="tr-overall-tiles"></div>
     </div>
   </div>
 </div>
@@ -394,8 +455,8 @@ function detectColumn(rawKey){
 // ── DATE PARSING ──────────────────────────────────────────────
 function parseLiveMonth(lm){
   if(!lm)return'Unknown';lm=String(lm).trim();
-  let m=lm.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/); // DD/MM/YY
-  if(m)return'20'+m[3]+'-'+m[2].padStart(2,'0');
+  let m=lm.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/); // MM/DD/YY
+  if(m)return'20'+m[3]+'-'+m[1].padStart(2,'0');
   m=lm.match(/^(\d{4})[\/\-](\d{2})/);               // YYYY-MM-DD
   if(m)return m[1]+'-'+m[2];
   m=lm.match(/^(\d{2})[\/\-](\d{2})[\/\-]/);         // YY-MM-01
@@ -418,6 +479,15 @@ function normaliseF10(resultVal,statusVal,flagVal){
     return null;
   }
   return parse(resultVal)||parse(statusVal)||parse(flagVal)||'Fail';
+}
+
+
+// ── F10 COMPLETION STATUS ────────────────────────────────────
+function normaliseCompletion(statusVal){
+  if(!statusVal)return'Under';
+  const s=String(statusVal).trim().toLowerCase();
+  if(s==='f10_completed'||s==='f10completed'||s==='completed')return'Completed';
+  return'Under';
 }
 
 // ── DATA PROCESSING ───────────────────────────────────────────
@@ -447,6 +517,7 @@ function processData(rows,fromCache){
     REQUIRED.forEach(f=>{if(!(f in nr))nr[f]='';});
     // F10 primary = F10_RESULT, fallback = F10_STATUS, then PASS_FLAG
     nr['F10']=normaliseF10(nr['F10_RESULT'],nr['F10_STATUS'],nr['PASS_FLAG']);
+    nr['F10_COMPLETION']=normaliseCompletion(nr['F10_STATUS']);
     // Keep raw F10_STATUS for display
     nr['F10_STATUS_RAW']=nr['F10_STATUS']||nr['F10_RESULT']||'';
     nr['LIVE_MONTH']=parseLiveMonth(nr['LIVE_MONTH']);
@@ -503,7 +574,13 @@ window.addEventListener('load',function(){
     if(saved){
       const rows=JSON.parse(saved);
       if(rows&&rows.length){
-        RAW=rows;
+        RAW=rows.map(function(r){
+          // Back-fill F10_COMPLETION for rows cached before this field was added
+          if(!('F10_COMPLETION' in r)){
+            r.F10_COMPLETION=normaliseCompletion(r.F10_STATUS||r.F10_STATUS_RAW||'');
+          }
+          return r;
+        });
         // Restore dropdowns & state without re-running full processData
         const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort();
         ['hmFrom','hmTo'].forEach(id=>{
@@ -647,91 +724,170 @@ function renderChips(){
 
 // ── OVERVIEW ──────────────────────────────────────────────────
 function renderOverview(){
-  const total=RAW.length,pass=RAW.filter(r=>r.F10==='Pass').length,fail=total-pass;
-  const rate=total?((pass/total)*100).toFixed(1):0;
-  const rated=RAW.filter(r=>r.F10_RATING!==''&&!isNaN(parseFloat(r.F10_RATING)));
-  const avg=rated.length?(rated.reduce((s,r)=>s+parseFloat(r.F10_RATING),0)/rated.length).toFixed(2):'—';
+  const total=RAW.length;
+  const completed=RAW.filter(r=>r.F10_COMPLETION==='Completed').length;
+  const under=total-completed;
+  const pass=RAW.filter(r=>r.F10==='Pass').length;
+  const fail=total-pass;
   const trainers=new Set(RAW.map(r=>r.TRAINERS_NAME).filter(Boolean));
-  set('ov-total',total.toLocaleString());set('ov-total-sub',pass+' passed · '+fail+' under');
-  set('ov-pass',pass.toLocaleString());set('ov-pass-sub',rate+'% pass rate');
-  set('ov-fail',fail.toLocaleString());set('ov-fail-sub',((fail/total)*100).toFixed(1)+'% of total');
-  set('ov-rate',rate+'%');set('ov-rate-sub',pass+' of '+total+' passed');
-  set('ov-avg',(avg!=='—'?avg+' ★':avg));set('ov-avg-sub',rated.length+' rated');
-  set('ov-trainers',trainers.size);set('ov-trainers-sub','unique trainers');
-  killChart('ov-donut');
-  charts['ov-donut']=new Chart(document.getElementById('ov-donut'),{
-    type:'doughnut',data:{labels:['Passed','Under F10'],datasets:[{data:[pass,fail],backgroundColor:[GREEN,RED],borderWidth:3,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.raw+' ('+((ctx.raw/total)*100).toFixed(1)+'%)'}}}}
-  });
-  const tData=groupBy(RAW,r=>r.TRAINERS_NAME).sort((a,b)=>b.PASS_RATE-a.PASS_RATE);
-  killChart('ov-trainer-bar');
-  charts['ov-trainer-bar']=new Chart(document.getElementById('ov-trainer-bar'),{
-    type:'bar',data:{labels:tData.map(t=>t.DIM),datasets:[
-      {label:'Passed',data:tData.map(t=>t.PASS),backgroundColor:GREEN+'99',borderRadius:4,stack:'s'},
-      {label:'Under F10',data:tData.map(t=>t.FAIL),backgroundColor:RED+'99',borderRadius:4,stack:'s'}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      onClick:(e,els)=>{if(els.length)setCrossFilter('trainer',tData[els[0].index].DIM);},
-      scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,grid:{color:'#F3F4F6'},ticks:{font:{size:10}}}},
-      plugins:{legend:{position:'top',labels:{font:{size:10}}}}}
-  });
-  const mData=groupBy(RAW,r=>r.LIVE_MONTH).sort((a,b)=>a.DIM.localeCompare(b.DIM));
-  killChart('ov-month-bar');
-  charts['ov-month-bar']=new Chart(document.getElementById('ov-month-bar'),{
-    type:'bar',data:{labels:mData.map(m=>m.DIM),datasets:[
-      {label:'Passed',data:mData.map(m=>m.PASS),backgroundColor:GREEN+'99',borderRadius:4,stack:'s'},
-      {label:'Under F10',data:mData.map(m=>m.FAIL),backgroundColor:RED+'99',borderRadius:4,stack:'s'},
-      {label:'Pass Rate %',data:mData.map(m=>m.PASS_RATE),type:'line',borderColor:'#7C3AED',backgroundColor:'transparent',pointRadius:5,pointBackgroundColor:'#7C3AED',yAxisID:'y2',borderWidth:2}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      onClick:(e,els)=>{if(els.length)setCrossFilter('month',mData[els[0].index].DIM);},
-      scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,grid:{color:'#F3F4F6'},ticks:{font:{size:10}},position:'left'},y2:{position:'right',max:100,grid:{display:false},ticks:{callback:v=>v+'%',font:{size:10}}}},
-      plugins:{legend:{position:'top',labels:{font:{size:10}}}}}
-  });
-}
+  const pct=(n,d)=>d?((n/d)*100).toFixed(1):'0.0';
 
-// ── TRAINER (horizontal table) ────────────────────────────────
-function setTrainerSeg(seg,btn){trSeg=seg;document.querySelectorAll('#panel-trainer .seg').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTrainer();}
-function renderTrainer(){
-  const q=((document.getElementById('trSearch')||{}).value||'').toLowerCase().trim();
-  let data=filterBySeg(RAW,trSeg);
-  const grouped=groupBy(data,r=>r.TRAINERS_NAME);
-  let filtered=q?grouped.filter(t=>t.DIM.toLowerCase().includes(q)):grouped;
-  const sorted=sortAgg(filtered,sortState.trainer);
-  set('tr-tbl-title',trSeg==='pass'?'Passed F10 — Trainer Performance':trSeg==='fail'?'Under F10 — Trainer Performance':'All Partners — Trainer Performance');
-  set('tr-row-count',sorted.length+' trainer'+(sorted.length===1?'':'s'));
-  document.getElementById('tr-tbody').innerHTML=sorted.map((t,i)=>{
-    const rate=t.PASS_RATE,rc=passRateColor(rate),rv=t.AVG_RATING;
-    const rC=rv===null?'#9CA3AF':ratingColor(rv);
-    const cities=t.CITIES_LIST.slice(0,3).join(', ')+(t.CITIES_LIST.length>3?' +'+( t.CITIES_LIST.length-3):'');
-    const mods=t.MODULES_LIST.length;
+  set('ov-total',total.toLocaleString());
+  set('ov-total-sub',pass+' pass · '+fail+' fail (result)');
+  set('ov-completed',completed.toLocaleString());
+  set('ov-completed-sub',pct(completed,total)+'% of total');
+  set('ov-under',under.toLocaleString());
+  set('ov-under-sub',pct(under,total)+'% of total');
+  set('ov-pass',pass.toLocaleString());
+  set('ov-pass-sub',pct(pass,total)+'% pass rate');
+  set('ov-fail',fail.toLocaleString());
+  set('ov-fail-sub',pct(fail,total)+'% of total');
+  set('ov-trainers',trainers.size);
+  set('ov-trainers-sub','unique trainers');
+
+  // Build month-wise table from Jan 2026 onwards
+  const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort().filter(m=>m>='2026-01');
+  const tbody=document.getElementById('ov-mo-tbody');
+  const tfoot=document.getElementById('ov-mo-tfoot');
+
+  const totals={total:0,comp:0,under:0,compPass:0,compFail:0,ovPass:0,ovFail:0};
+
+  tbody.innerHTML=months.map(mo=>{
+    const rows=RAW.filter(r=>r.LIVE_MONTH===mo);
+    const t=rows.length;
+    const comp=rows.filter(r=>r.F10_COMPLETION==='Completed').length;
+    const und=t-comp;
+    const compPass=rows.filter(r=>r.F10_COMPLETION==='Completed'&&r.F10==='Pass').length;
+    const compFail=comp-compPass;
+    const ovPass=rows.filter(r=>r.F10==='Pass').length;
+    const ovFail=t-ovPass;
+    totals.total+=t; totals.comp+=comp; totals.under+=und;
+    totals.compPass+=compPass; totals.compFail+=compFail;
+    totals.ovPass+=ovPass; totals.ovFail+=ovFail;
+    const label=(()=>{try{const [y,m]=mo.split('-');return new Date(+y,+m-1,1).toLocaleString('default',{month:'short',year:'2-digit'});}catch(e){return mo;}})();
     return '<tr>'
-      +'<td><span class="rank">'+(i+1)+'</span></td>'
-      +'<td><b style="font-size:13px">'+esc(t.DIM)+'</b></td>'
-      +'<td class="num"><b>'+t.TOTAL+'</b></td>'
-      +'<td class="num"><span style="color:#065F46;font-weight:800">'+t.PASS+'</span></td>'
-      +'<td class="num"><span style="color:#991B1B;font-weight:800">'+t.FAIL+'</span></td>'
-      +'<td style="min-width:180px"><div class="pct-bar">'
-        +'<span class="pct-num" style="color:'+rc+'">'+rate+'%</span>'
-        +'<div class="bar-bg"><div class="bar-fill" style="width:'+rate+'%;background:'+rc+'"></div></div>'
-      +'</div></td>'
-      +'<td class="num"><span style="font-weight:800;color:'+rC+'">'+(rv!==null?rv.toFixed(2)+' ★'+(rv>=4.7?' ✓':''):' —')+'</span></td>'
-      +'<td style="font-size:11px;color:var(--muted);max-width:160px">'+esc(cities||'—')+'</td>'
-      +'<td class="num"><span style="font-weight:700;color:var(--pu2)">'+mods+'</span></td>'
-      +'<td><button style="padding:3px 10px;background:var(--pu4);color:var(--pu2);border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer" onclick="setCrossFilter(\'trainer\',\''+esc(t.DIM)+'\')">View Raw →</button></td>'
+      +'<td class="mo-name">'+label+'</td>'
+      +'<td><span class="n-main">'+t+'</span></td>'
+      +'<td class="g1"><span class="n-main">'+comp+'</span><span class="n-pct">'+pct(comp,t)+'%</span></td>'
+      +'<td class="g1"><span class="n-main">'+pct(comp,t)+'%</span></td>'
+      +'<td class="g2"><span class="n-main">'+und+'</span><span class="n-pct">'+pct(und,t)+'%</span></td>'
+      +'<td class="g2"><span class="n-main">'+pct(und,t)+'%</span></td>'
+      +'<td class="g3"><span class="n-main">'+compPass+'</span><span class="n-pct">'+pct(compPass,comp)+'% of Completed</span></td>'
+      +'<td class="g3"><span class="n-main">'+pct(compPass,comp)+'%</span></td>'
+      +'<td class="g4"><span class="n-main">'+compFail+'</span><span class="n-pct">'+pct(compFail,comp)+'% of Completed</span></td>'
+      +'<td class="g4"><span class="n-main">'+pct(compFail,comp)+'%</span></td>'
+      +'<td class="g5"><span class="n-main">'+ovPass+'</span><span class="n-pct">'+pct(ovPass,t)+'%</span></td>'
+      +'<td class="g5"><span class="n-main">'+pct(ovPass,t)+'%</span></td>'
+      +'<td class="g6"><span class="n-main">'+ovFail+'</span><span class="n-pct">'+pct(ovFail,t)+'%</span></td>'
+      +'<td class="g6"><span class="n-main">'+pct(ovFail,t)+'%</span></td>'
       +'</tr>';
   }).join('');
+
+  const T=totals;
+  tfoot.innerHTML='<tr>'
+    +'<td class="mo-name">TOTAL</td>'
+    +'<td><span class="n-main">'+T.total+'</span></td>'
+    +'<td class="g1"><span class="n-main">'+T.comp+'</span><span class="n-pct">'+pct(T.comp,T.total)+'%</span></td>'
+    +'<td class="g1"><span class="n-main">'+pct(T.comp,T.total)+'%</span></td>'
+    +'<td class="g2"><span class="n-main">'+T.under+'</span><span class="n-pct">'+pct(T.under,T.total)+'%</span></td>'
+    +'<td class="g2"><span class="n-main">'+pct(T.under,T.total)+'%</span></td>'
+    +'<td class="g3"><span class="n-main">'+T.compPass+'</span><span class="n-pct">'+pct(T.compPass,T.comp)+'%</span></td>'
+    +'<td class="g3"><span class="n-main">'+pct(T.compPass,T.comp)+'%</span></td>'
+    +'<td class="g4"><span class="n-main">'+T.compFail+'</span><span class="n-pct">'+pct(T.compFail,T.comp)+'%</span></td>'
+    +'<td class="g4"><span class="n-main">'+pct(T.compFail,T.comp)+'%</span></td>'
+    +'<td class="g5"><span class="n-main">'+T.ovPass+'</span><span class="n-pct">'+pct(T.ovPass,T.total)+'%</span></td>'
+    +'<td class="g5"><span class="n-main">'+pct(T.ovPass,T.total)+'%</span></td>'
+    +'<td class="g6"><span class="n-main">'+T.ovFail+'</span><span class="n-pct">'+pct(T.ovFail,T.total)+'%</span></td>'
+    +'<td class="g6"><span class="n-main">'+pct(T.ovFail,T.total)+'%</span></td>'
+    +'</tr>';
+}
+
+function exportOverviewCSV(){
+  const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort().filter(m=>m>='2026-01');
+  const pct=(n,d)=>d?((n/d)*100).toFixed(1)+'%':'0.0%';
+  const hdrs=['Month','Total F10 Partners','F10 Completed','F10 Completed %','Under F10','Under F10 %','Completed Pass','Completed Pass % (of Completed)','Completed Fail','Completed Fail % (of Completed)','Overall Pass','Overall Pass %','Overall Fail','Overall Fail %'];
+  const rows=[hdrs.join(',')];
+  months.forEach(mo=>{
+    const r=RAW.filter(x=>x.LIVE_MONTH===mo);
+    const t=r.length,comp=r.filter(x=>x.F10_COMPLETION==='Completed').length,und=t-comp;
+    const compPass=r.filter(x=>x.F10_COMPLETION==='Completed'&&x.F10==='Pass').length,compFail=comp-compPass;
+    const ovPass=r.filter(x=>x.F10==='Pass').length,ovFail=t-ovPass;
+    const label=(()=>{try{const [y,m]=mo.split('-');return new Date(+y,+m-1,1).toLocaleString('default',{month:'short',year:'2-digit'});}catch(e){return mo;}})();
+    rows.push([label,t,comp,pct(comp,t),und,pct(und,t),compPass,pct(compPass,comp),compFail,pct(compFail,comp),ovPass,pct(ovPass,t),ovFail,pct(ovFail,t)].join(','));
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='monthly_f10_overview.csv';a.click();
+}
+
+// ── TRAINER (three tile columns) ────────────────────────────────
+function setTrainerSeg(seg,btn){}
+function renderTrainer(){
+  const q=((document.getElementById('trSearch')||{}).value||''). toLowerCase().trim();
+  const pct=(n,d)=>d?parseFloat(((n/d)*100).toFixed(1)):0;
+
+  function buildTiles(data,containerId,countId){
+    const map={};
+    data.forEach(r=>{
+      const t=r.TRAINERS_NAME||'Unknown';
+      if(!map[t])map[t]={name:t,total:0,pass:0,fail:0};
+      map[t].total++;
+      if(r.F10==='Pass')map[t].pass++;else map[t].fail++;
+    });
+    let arr=Object.values(map).sort((a,b)=>b.total-a.total);
+    if(q)arr=arr.filter(t=>t.name.toLowerCase().includes(q));
+    const el=document.getElementById(containerId);
+    const cnt=document.getElementById(countId);
+    if(cnt)cnt.textContent=arr.length+' trainer'+(arr.length===1?'':' s')+' · '+data.length.toLocaleString()+' providers';
+    if(!arr.length){el.innerHTML='<div class="tr-tiles-empty">No trainers found</div>';return;}
+    el.innerHTML=arr.map(t=>{
+      const passR=pct(t.pass,t.total);
+      const failR=pct(t.fail,t.total);
+      return '<div class="tr-card">'
+        +'<div class="tr-card-name">'+esc(t.name)+'</div>'
+        +'<div class="tr-card-total">Total Providers: <b>'+t.total+'</b></div>'
+        +'<div class="tr-card-bars">'
+        +'<div class="tr-pct-row">'
+          +'<span class="tr-pct-label pass">Pass</span>'
+          +'<div class="tr-pct-bar-bg"><div class="tr-pct-bar-fill pass" style="width:'+passR+'%"></div></div>'
+          +'<span class="tr-pct-val pass">'+t.pass+' ('+passR+'%)</span>'
+        +'</div>'
+        +'<div class="tr-pct-row">'
+          +'<span class="tr-pct-label fail">Fail</span>'
+          +'<div class="tr-pct-bar-bg"><div class="tr-pct-bar-fill fail" style="width:'+failR+'%"></div></div>'
+          +'<span class="tr-pct-val fail">'+t.fail+' ('+failR+'%)</span>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  buildTiles(RAW.filter(r=>r.F10_COMPLETION==='Completed'),'tr-completed-tiles','tr-completed-count');
+  buildTiles(RAW.filter(r=>r.F10_COMPLETION==='Under'),'tr-under-tiles','tr-under-count');
+  buildTiles(RAW,'tr-overall-tiles','tr-overall-count');
 }
 
 function exportTrainerCSV(){
-  const q=((document.getElementById('trSearch')||{}).value||'').toLowerCase().trim();
-  let data=filterBySeg(RAW,trSeg);
-  let grouped=groupBy(data,r=>r.TRAINERS_NAME);
-  if(q)grouped=grouped.filter(t=>t.DIM.toLowerCase().includes(q));
-  const sorted=sortAgg(grouped,sortState.trainer);
-  const cols=['DIM','TOTAL','PASS','FAIL','PASS_RATE','AVG_RATING'];
-  const hdrs=['Trainer','Total','Passed','Under F10','Pass Rate %','Avg Rating'];
-  const rows=[hdrs.join(','),...sorted.map(t=>cols.map(c=>'"'+String(t[c]!==null&&t[c]!==undefined?t[c]:'').replace(/"/g,'""')+'"').join(','))];
+  const pct=(n,d)=>d?((n/d)*100).toFixed(1)+'%':'0.0%';
+  function agg(data){
+    const map={};
+    data.forEach(r=>{
+      const t=r.TRAINERS_NAME||'Unknown';
+      if(!map[t])map[t]={name:t,total:0,pass:0,fail:0};
+      map[t].total++;
+      if(r.F10==='Pass')map[t].pass++;else map[t].fail++;
+    });
+    return Object.values(map).sort((a,b)=>b.total-a.total);
+  }
+  const comp=agg(RAW.filter(r=>r.F10_COMPLETION==='Completed'));
+  const und=agg(RAW.filter(r=>r.F10_COMPLETION==='Under'));
+  const overall=agg(RAW);
+  const hdrs=['Trainer','Completed-Total','Completed-Pass','Completed-Pass%','Completed-Fail','Completed-Fail%','Under-Total','Under-Pass','Under-Pass%','Under-Fail','Under-Fail%','Overall-Total','Overall-Pass','Overall-Pass%','Overall-Fail','Overall-Fail%'];
+  const names=[...new Set([...comp.map(t=>t.name),...und.map(t=>t.name),...overall.map(t=>t.name)])].sort();
+  const getRow=(arr,n)=>arr.find(t=>t.name===n)||{total:0,pass:0,fail:0};
+  const rows=[hdrs.join(','),...names.map(n=>{
+    const c=getRow(comp,n),u=getRow(und,n),o=getRow(overall,n);
+    return ['"'+n.replace(/"/g,'\"')+'"',c.total,c.pass,pct(c.pass,c.total),c.fail,pct(c.fail,c.total),u.total,u.pass,pct(u.pass,u.total),u.fail,pct(u.fail,u.total),o.total,o.pass,pct(o.pass,o.total),o.fail,pct(o.fail,o.total)].join(',');
+  })];
   const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='trainer_summary.csv';a.click();
 }
