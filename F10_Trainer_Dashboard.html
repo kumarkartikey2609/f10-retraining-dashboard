@@ -418,6 +418,14 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 const REDASH_QUERY_URL='https://jarvis.urbanclap.com/queries/560089/source';
 const REDASH_API_KEY='FNsr3ZwNahnzSuaIYZrKKJUhRdS6nzhpdBq5s6P6';
 const LS_KEY='f10_dashboard_v4';
+// ── GitHub shared-data sync ─────────────────────────────────
+// All visitors auto-load data uploaded by anyone.
+// To enable saving: create a GitHub Fine-Grained PAT (Contents:Write)
+// for repo kumarkartikey2609/f10-retraining-dashboard and paste below.
+const GH_OWNER='kumarkartikey2609';
+const GH_REPO='f10-retraining-dashboard';
+const GH_FILE='shared_data.json';
+const GH_TOKEN='';  // paste your GitHub PAT here to enable shared saving
 
 let RAW=[],charts={};
 let trSeg='all',citySeg='all',moSeg='all',hmSeg='all',rawSeg='all';
@@ -525,10 +533,7 @@ function processData(rows,fromCache){
     return nr;
   });
 
-  // Save to localStorage (persist across page refresh)
-  if(!fromCache){
-    try{localStorage.setItem(LS_KEY,JSON.stringify(RAW));localStorage.setItem(LS_KEY+'_ts',new Date().toLocaleString());}catch(e){}
-  }
+  if(!fromCache){saveSharedData();}
 
   const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
   const cityLabel=hasCityCol?'City':'Category';
@@ -568,43 +573,101 @@ function processData(rows,fromCache){
 }
 
 // ── ON PAGE LOAD: restore from cache ─────────────────────────
-window.addEventListener('load',function(){
+// ── GITHUB SHARED DATA SYNC ──────────────────────────────────
+const GH_RAW=`https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${GH_FILE}`;
+const GH_API=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+
+async function loadSharedData(){
   try{
-    const saved=localStorage.getItem(LS_KEY);
-    if(saved){
-      const rows=JSON.parse(saved);
-      if(rows&&rows.length){
-        RAW=rows.map(function(r){
-          // Back-fill F10_COMPLETION for rows cached before this field was added
-          if(!('F10_COMPLETION' in r)){
-            r.F10_COMPLETION=normaliseCompletion(r.F10_STATUS||r.F10_STATUS_RAW||'');
-          }
-          return r;
-        });
-        // Restore dropdowns & state without re-running full processData
-        const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort();
-        ['hmFrom','hmTo'].forEach(id=>{
-          const sel=document.getElementById(id);
-          const lbl=id==='hmFrom'?'All (from)':'All (to)';
-          sel.innerHTML='<option value="">'+lbl+'</option>';
-          months.forEach(m=>{const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
-        });
-        const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
-        const cityLabel=hasCityCol?'City':'Category';
-        set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');set('city-chart-title','Volume by '+cityLabel);
-        document.getElementById('city-fallback-note').style.display=hasCityCol?'none':'block';
-        document.getElementById('emptyState').style.display='none';
-        document.getElementById('panel-overview').style.display='block';
-        const badge=document.getElementById('hdrBadge');
-        badge.style.display='inline-block';badge.textContent=RAW.length.toLocaleString()+' records';
-        const ts=localStorage.getItem(LS_KEY+'_ts')||'';
-        setStatus('Restored from cache','ok');
-        const note=document.getElementById('dataNote');
-        if(note){note.style.display='flex';note.innerHTML='💾 Showing saved data'+(ts?' (fetched '+ts+')':'')+'. Click <b style="margin-left:4px">⟳ Fetch Latest Data</b> to refresh.';}
-        renderOverview();
+    const r=await fetch(GH_RAW+'?t='+Date.now());
+    if(!r.ok)return false;
+    const d=await r.json();
+    if(!d||!d.rows||!d.rows.length)return false;
+    RAW=d.rows.map(function(row){
+      if(!('F10_COMPLETION' in row))
+        row.F10_COMPLETION=normaliseCompletion(row.F10_STATUS||row.F10_STATUS_RAW||'');
+      return row;
+    });
+    const ts=d.savedAt?new Date(d.savedAt).toLocaleString():'';
+    const note=document.getElementById('dataNote');
+    if(note){note.style.display='flex';note.innerHTML='🌐 Shared data'+(ts?' (uploaded '+ts+')':'')+'. Click <b style="margin-left:4px">⟳ Fetch Latest Data</b> to refresh.';}
+    const badge=document.getElementById('hdrBadge');
+    if(badge){badge.style.display='inline-block';badge.textContent=RAW.length.toLocaleString()+' records';}
+    document.getElementById('emptyState').style.display='none';
+    document.getElementById('panel-overview').style.display='block';
+    const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort();
+    ['hmFrom','hmTo'].forEach(function(id){
+      const sel=document.getElementById(id);if(!sel)return;
+      const lbl=id==='hmFrom'?'All (from)':'All (to)';
+      sel.innerHTML='<option value="">'+lbl+'</option>';
+      months.forEach(function(m){const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
+    });
+    const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
+    const cityLabel=hasCityCol?'City':'Category';
+    set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');
+    setStatus('✓ '+RAW.length+' records loaded'+(ts?' ('+ts+')':''),'ok');
+    renderOverview();
+    return true;
+  }catch(e){console.warn('loadSharedData:',e);return false;}
+}
+
+async function saveSharedData(){
+  // Always save to localStorage as local cache
+  try{localStorage.setItem(LS_KEY,JSON.stringify(RAW));localStorage.setItem(LS_KEY+'_ts',new Date().toLocaleString());}catch(e){}
+  if(!GH_TOKEN){return;}  // No token — local only
+  try{
+    const payload=JSON.stringify({rows:RAW,savedAt:new Date().toISOString(),count:RAW.length});
+    const b64=btoa(unescape(encodeURIComponent(payload)));
+    const hdrs={'Authorization':'token '+GH_TOKEN,'Content-Type':'application/json'};
+    let sha;
+    try{const gr=await fetch(GH_API,{headers:hdrs});if(gr.ok){const gj=await gr.json();sha=gj.sha;}}catch(e){}
+    const body={message:'F10 data update — '+RAW.length+' rows',content:b64,...(sha?{sha}:{})};
+    const pr=await fetch(GH_API,{method:'PUT',headers:hdrs,body:JSON.stringify(body)});
+    if(pr.ok){setStatus('✓ '+RAW.length+' rows loaded & shared with all users','ok');}
+    else{console.warn('GitHub save:',pr.status);}
+  }catch(e){console.warn('saveSharedData:',e);}
+}
+
+// ── ON PAGE LOAD ──────────────────────────────────────────────
+window.addEventListener('load',function(){
+  // 1. Try GitHub shared data (visible to ALL users)
+  loadSharedData().then(function(loaded){
+    if(loaded)return;
+    // 2. Fall back to this browser's localStorage cache
+    try{
+      const saved=localStorage.getItem(LS_KEY);
+      if(saved){
+        const rows=JSON.parse(saved);
+        if(rows&&rows.length){
+          RAW=rows.map(function(r){
+            if(!('F10_COMPLETION' in r))
+              r.F10_COMPLETION=normaliseCompletion(r.F10_STATUS||r.F10_STATUS_RAW||'');
+            return r;
+          });
+          const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort();
+          ['hmFrom','hmTo'].forEach(function(id){
+            const sel=document.getElementById(id);if(!sel)return;
+            const lbl=id==='hmFrom'?'All (from)':'All (to)';
+            sel.innerHTML='<option value="">'+lbl+'</option>';
+            months.forEach(function(m){const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
+          });
+          const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
+          const cityLabel=hasCityCol?'City':'Category';
+          set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');
+          document.getElementById('city-fallback-note').style.display=hasCityCol?'none':'block';
+          document.getElementById('emptyState').style.display='none';
+          document.getElementById('panel-overview').style.display='block';
+          const badge=document.getElementById('hdrBadge');
+          if(badge){badge.style.display='inline-block';badge.textContent=RAW.length.toLocaleString()+' records';}
+          const ts=localStorage.getItem(LS_KEY+'_ts')||'';
+          setStatus('Restored from local cache','ok');
+          const note=document.getElementById('dataNote');
+          if(note){note.style.display='flex';note.innerHTML='💾 Local cache'+(ts?' ('+ts+')':'')+'. Click <b style="margin-left:4px">⟳ Fetch Latest Data</b> to refresh.';}
+          renderOverview();
+        }
       }
-    }
-  }catch(e){}
+    }catch(e){}
+  });
 });
 
 // ── REDASH FETCH ──────────────────────────────────────────────
@@ -616,30 +679,78 @@ async function fetchRedash(){
   if(!match){setStatus('Bad URL','err');btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;}
   const qid=match[1];
   const hdrs={'Authorization':'Key '+REDASH_API_KEY,'Content-Type':'application/json'};
-  setStatus('Starting fresh run…','loading');
+
+  setStatus('Connecting to Redash…','loading');
   try{
-    const pr=await fetch(base+'/api/queries/'+qid+'/results',{method:'POST',headers:hdrs,body:JSON.stringify({max_age:0}),mode:'cors'});
+    const pr=await fetch(base+'/api/queries/'+qid+'/results',
+      {method:'POST',headers:hdrs,body:JSON.stringify({max_age:0}),mode:'cors'});
     if(!pr.ok)throw new Error('HTTP '+pr.status);
     const pj=await pr.json();
-    if(pj.query_result&&pj.query_result.data){processData(pj.query_result.data.rows||[],false);return;}
+    if(pj.query_result&&pj.query_result.data){processData(pj.query_result.data.rows||[],false);btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;}
     const jobId=pj.job&&pj.job.id;
-    if(!jobId)throw new Error('No job ID');
+    if(!jobId)throw new Error('No job ID in response');
     for(let i=0;i<60;i++){
-      setStatus('Running… ('+(i+1)+'s)','loading');
+      setStatus('Query running… ('+(i+1)+'s)','loading');
       await new Promise(r=>setTimeout(r,1000));
-      const jr=await fetch(base+'/api/jobs/'+jobId+'?api_key='+encodeURIComponent(REDASH_API_KEY),{mode:'cors'});
+      const jr=await fetch(base+'/api/jobs/'+jobId+'?api_key='+encodeURIComponent(REDASH_API_KEY),
+        {method:'GET',headers:hdrs,mode:'cors'});
       const jj=await jr.json();
       const st=jj.job&&jj.job.status;
       if(st===3){
-        const rr=await fetch(base+'/api/query_results/'+jj.job.query_result_id+'.json?api_key='+encodeURIComponent(REDASH_API_KEY),{mode:'cors'});
+        const rr=await fetch(base+'/api/query_results/'+jj.job.query_result_id+'.json?api_key='+encodeURIComponent(REDASH_API_KEY),
+          {method:'GET',headers:hdrs,mode:'cors'});
         const rj=await rr.json();
-        processData((rj.query_result&&rj.query_result.data&&rj.query_result.data.rows)||[],false);return;
+        processData((rj.query_result&&rj.query_result.data&&rj.query_result.data.rows)||[],false);
+        btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;
       }
-      if(st===4)throw new Error(jj.job.error||'Query failed');
+      if(st===4)throw new Error(jj.job.error||'Query failed on Redash');
     }
-    throw new Error('Timed out');
-  }catch(e){setStatus('Error: '+e.message,'err');}
-  finally{btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';}
+    throw new Error('Timed out after 60s');
+  }catch(e){
+    // Direct fetch failed — Redash is on internal network, CORS blocks browser requests
+    // from GitHub Pages. Solution: download CSV directly from Redash and upload it.
+    btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';
+    showCsvFallback();
+  }
+}
+
+function showCsvFallback(){
+  const CSV_URL=REDASH_QUERY_URL.split('/queries/')[0].replace(/\/$/,'')+
+    '/api/queries/'+REDASH_QUERY_URL.match(/queries\/(\d+)/)[1]+
+    '/results.csv?api_key='+encodeURIComponent(REDASH_API_KEY);
+  // Show a modal/banner explaining the 2-step process
+  let modal=document.getElementById('corsModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='corsModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML=`
+      <div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="font-size:18px;font-weight:800;color:#1E1040;margin-bottom:8px;">📡 Direct fetch blocked by browser</div>
+        <div style="font-size:13px;color:#6B7280;margin-bottom:20px;line-height:1.6;">
+          Redash is on your internal network. Your browser blocks direct API calls from GitHub Pages (CORS policy).<br><br>
+          <b style="color:#1E1040;">Two steps to load data:</b>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <a href="${CSV_URL}" target="_blank"
+            style="display:flex;align-items:center;gap:10px;background:#7C3AED;color:#fff;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">
+            <span style="font-size:20px;">1️⃣</span>
+            <span>Download CSV from Redash <span style="font-size:11px;opacity:.8;">(opens in new tab — requires VPN)</span></span>
+          </a>
+          <button onclick="document.getElementById('corsModal').remove();document.getElementById('fileInputHidden').click();"
+            style="display:flex;align-items:center;gap:10px;background:#10B981;color:#fff;padding:12px 16px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:13px;width:100%;">
+            <span style="font-size:20px;">2️⃣</span>
+            <span>Upload the downloaded CSV file</span>
+          </button>
+        </div>
+        <button onclick="document.getElementById('corsModal').remove();"
+          style="font-size:12px;color:#9CA3AF;background:none;border:none;cursor:pointer;width:100%;text-align:center;">
+          Cancel
+        </button>
+      </div>`;
+    document.body.appendChild(modal);
+  }else{modal.style.display='flex';}
+  setStatus('VPN required — follow the 2-step process above','err');
 }
 
 function handleFile(file){
