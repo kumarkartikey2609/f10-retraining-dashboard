@@ -671,47 +671,40 @@ window.addEventListener('load',function(){
 });
 
 // ── REDASH FETCH ──────────────────────────────────────────────
+// Strategy: first try the GitHub-hosted latest_data.csv (committed by refresh_data.bat),
+// then fall back to the manual CSV upload modal.
 async function fetchRedash(){
   const btn=document.getElementById('fetchBtn');
   btn.disabled=true;btn.textContent='Fetching…';
-  const base=REDASH_QUERY_URL.split('/queries/')[0].replace(/\/$/,'');
-  const match=REDASH_QUERY_URL.match(/queries\/(\d+)/);
-  if(!match){setStatus('Bad URL','err');btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;}
-  const qid=match[1];
-  const hdrs={'Authorization':'Key '+REDASH_API_KEY,'Content-Type':'application/json'};
+  setStatus('Checking for latest data…','loading');
 
-  setStatus('Connecting to Redash…','loading');
+  // Try GitHub raw — this is the CSV committed by refresh_data.bat
+  const DATA_CSV_RAW='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/main/latest_data.csv';
   try{
-    const pr=await fetch(base+'/api/queries/'+qid+'/results',
-      {method:'POST',headers:hdrs,body:JSON.stringify({max_age:0}),mode:'cors'});
-    if(!pr.ok)throw new Error('HTTP '+pr.status);
-    const pj=await pr.json();
-    if(pj.query_result&&pj.query_result.data){processData(pj.query_result.data.rows||[],false);btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;}
-    const jobId=pj.job&&pj.job.id;
-    if(!jobId)throw new Error('No job ID in response');
-    for(let i=0;i<60;i++){
-      setStatus('Query running… ('+(i+1)+'s)','loading');
-      await new Promise(r=>setTimeout(r,1000));
-      const jr=await fetch(base+'/api/jobs/'+jobId+'?api_key='+encodeURIComponent(REDASH_API_KEY),
-        {method:'GET',headers:hdrs,mode:'cors'});
-      const jj=await jr.json();
-      const st=jj.job&&jj.job.status;
-      if(st===3){
-        const rr=await fetch(base+'/api/query_results/'+jj.job.query_result_id+'.json?api_key='+encodeURIComponent(REDASH_API_KEY),
-          {method:'GET',headers:hdrs,mode:'cors'});
-        const rj=await rr.json();
-        processData((rj.query_result&&rj.query_result.data&&rj.query_result.data.rows)||[],false);
-        btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';return;
+    const r=await fetch(DATA_CSV_RAW+'?t='+Date.now()); // bust cache
+    if(r.ok){
+      const csv=await r.text();
+      if(csv&&csv.trim().length>10){
+        Papa.parse(csv,{header:true,skipEmptyLines:true,
+          complete:function(res){
+            if(res.data&&res.data.length){
+              processData(res.data,false);
+              btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';
+            }else{
+              btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';
+              showCsvFallback();
+            }
+          },
+          error:function(){btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';showCsvFallback();}
+        });
+        return;
       }
-      if(st===4)throw new Error(jj.job.error||'Query failed on Redash');
     }
-    throw new Error('Timed out after 60s');
-  }catch(e){
-    // Direct fetch failed — Redash is on internal network, CORS blocks browser requests
-    // from GitHub Pages. Solution: download CSV directly from Redash and upload it.
-    btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';
-    showCsvFallback();
-  }
+  }catch(e){}
+
+  // GitHub raw failed or no file yet — fall back to manual upload
+  btn.disabled=false;btn.textContent='⟳ Fetch Latest Data';
+  showCsvFallback();
 }
 
 function showCsvFallback(){
@@ -726,10 +719,11 @@ function showCsvFallback(){
     modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
     modal.innerHTML=`
       <div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-        <div style="font-size:18px;font-weight:800;color:#1E1040;margin-bottom:8px;">📡 Direct fetch blocked by browser</div>
+        <div style="font-size:18px;font-weight:800;color:#1E1040;margin-bottom:8px;">📡 No pre-fetched data found</div>
         <div style="font-size:13px;color:#6B7280;margin-bottom:20px;line-height:1.6;">
-          Redash is on your internal network. Your browser blocks direct API calls from GitHub Pages (CORS policy).<br><br>
-          <b style="color:#1E1040;">Two steps to load data:</b>
+          No <code>latest_data.csv</code> was found in the GitHub repo.<br><br>
+          <b style="color:#1E1040;">Easiest fix (one click):</b> Run <code style="background:#F3F4F6;padding:2px 6px;border-radius:4px;">refresh_data.bat</code> from your project folder while on VPN — it fetches Redash data and uploads it automatically. Then click Fetch again.<br><br>
+          <b style="color:#1E1040;">Or load manually (two steps):</b>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
           <a href="${CSV_URL}" target="_blank"
