@@ -211,7 +211,6 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 <div class="tabs">
   <button class="tab active" data-tab="overview"  onclick="switchTab('overview',this)">📊 Overview</button>
   <button class="tab"        data-tab="trainer"   onclick="switchTab('trainer',this)">👤 Trainer</button>
-  <button class="tab"        data-tab="city"      onclick="switchTab('city',this)">🏙️ City / Category</button>
   <button class="tab"        data-tab="monthly"   onclick="switchTab('monthly',this)">📅 Monthly</button>
   <button class="tab"        data-tab="heatmap"   onclick="switchTab('heatmap',this)">🔥 Trainer × Month</button>
   <button class="tab"        data-tab="raw"       onclick="switchTab('raw',this)">📋 Raw Data</button>
@@ -305,34 +304,6 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
       <div class="tr-tile-col-sub" id="tr-overall-count">All partners combined</div>
       <div class="tr-tile-cards" id="tr-overall-tiles"></div>
     </div>
-  </div>
-</div>
-
-<!-- CITY -->
-<div class="tab-panel" id="panel-city" style="display:none">
-  <div class="sec-hdr">
-    <div class="sec-title">🏙️ <span id="city-dim-label">City View</span></div>
-    <div class="seg-bar">
-      <button class="seg active" onclick="setCitySeg('all',this)">All</button>
-      <button class="seg pass"   onclick="setCitySeg('pass',this)">Passed F10</button>
-      <button class="seg fail"   onclick="setCitySeg('fail',this)">Under F10</button>
-    </div>
-  </div>
-  <div id="city-fallback-note" class="info-banner" style="display:none">ℹ️ No <b>CITY</b> column detected — showing by <b>REPORTING_SUPERCATEGORY_NEW</b> instead.</div>
-  <div class="chart-grid">
-    <div class="chart-card"><div class="chart-hdr"><div class="chart-title" id="city-chart-title">Volume by City</div></div><div class="chart-wrap"><canvas id="city-bar"></canvas></div></div>
-    <div class="chart-card"><div class="chart-hdr"><div class="chart-title">Pass Rate by City</div></div><div class="chart-wrap"><canvas id="city-rate-bar"></canvas></div></div>
-  </div>
-  <div class="tbl-card">
-    <div class="tbl-hdr"><div class="tbl-title" id="city-tbl-title">City Summary</div></div>
-    <div class="tbl-wrap"><table><thead><tr>
-      <th style="width:40px">#</th><th onclick="sortTbl('city','DIM')">City ↕</th>
-      <th onclick="sortTbl('city','TOTAL')" class="num">Total ↕</th>
-      <th onclick="sortTbl('city','PASS')" class="num">Passed ↕</th>
-      <th onclick="sortTbl('city','FAIL')" class="num">Under F10 ↕</th>
-      <th onclick="sortTbl('city','PASS_RATE')">Pass Rate ↕</th>
-      <th onclick="sortTbl('city','AVG_RATING')" class="num">Avg Rating ↕</th>
-    </tr></thead><tbody id="city-tbody"></tbody></table></div>
   </div>
 </div>
 
@@ -835,7 +806,7 @@ function switchTabByName(id){
   if(RAW.length){document.getElementById('panel-'+id).style.display='block';refreshTab(id);}
 }
 function refreshTab(id){
-  ({overview:renderOverview,trainer:renderTrainer,city:renderCity,monthly:renderMonthly,heatmap:renderHeatmap,raw:renderRaw}[id]||function(){})();
+  ({overview:renderOverview,trainer:renderTrainer,monthly:renderMonthly,heatmap:renderHeatmap,raw:renderRaw}[id]||function(){})();
 }
 function setStatus(msg,type){const el=document.getElementById('hdrStatus');el.style.display='inline-block';el.className='hdr-status '+type;el.textContent=msg;}
 
@@ -1054,27 +1025,6 @@ function exportTrainerCSV(){
 }
 
 // ── CITY ──────────────────────────────────────────────────────
-function setCitySeg(seg,btn){citySeg=seg;document.querySelectorAll('#panel-city .seg').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCity();}
-function renderCity(){
-  const filtered=filterBySeg(RAW,citySeg);
-  const data=groupBy(filtered,r=>r['_CITY']);
-  const sorted=sortAgg(data,sortState.city);
-  killChart('city-bar');
-  charts['city-bar']=new Chart(document.getElementById('city-bar'),{
-    type:'bar',data:{labels:sorted.map(d=>d.DIM),datasets:[{label:citySeg==='pass'?'Passed':citySeg==='fail'?'Under F10':'Total',data:sorted.map(d=>citySeg==='pass'?d.PASS:citySeg==='fail'?d.FAIL:d.TOTAL),backgroundColor:sorted.map((_,i)=>pu(i)+'99'),borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      onClick:(e,els)=>{if(els.length)setCrossFilter('city',sorted[els[0].index].DIM);},
-      scales:{x:{ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}}},plugins:{legend:{display:false}}}
-  });
-  const allData=groupBy(RAW,r=>r['_CITY']).sort((a,b)=>b.PASS_RATE-a.PASS_RATE);
-  killChart('city-rate-bar');
-  charts['city-rate-bar']=new Chart(document.getElementById('city-rate-bar'),{
-    type:'bar',data:{labels:allData.map(d=>d.DIM),datasets:[{label:'Pass Rate %',data:allData.map(d=>d.PASS_RATE),backgroundColor:allData.map(d=>passRateColor(d.PASS_RATE)+'99'),borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{font:{size:10}}},y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F3F4F6'}}},plugins:{legend:{display:false}}}
-  });
-  document.getElementById('city-tbody').innerHTML=sorted.map((t,i)=>aggRow(i,t)).join('');
-}
-
 // ── MONTHLY ───────────────────────────────────────────────────
 function setMonthlySeg(seg,btn){moSeg=seg;document.querySelectorAll('#panel-monthly .seg').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderMonthly();}
 function renderMonthly(){
@@ -1197,7 +1147,7 @@ function exportCSV(){
 // ── SORT ──────────────────────────────────────────────────────
 function sortTbl(scope,col){
   const ss=sortState[scope];if(ss.col===col)ss.asc=!ss.asc;else{ss.col=col;ss.asc=false;}
-  if(scope==='trainer')renderTrainer();else if(scope==='city')renderCity();else if(scope==='monthly')renderMonthly();else renderRaw();
+  if(scope==='trainer')renderTrainer();else if(scope==='monthly')renderMonthly();else renderRaw();
 }
 function sortAgg(data,ss){
   return[...data].sort((a,b)=>{
