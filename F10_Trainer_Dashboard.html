@@ -179,6 +179,31 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 .mo-tbl tfoot td{background:var(--pu5);font-weight:800;border-top:2px solid var(--pu3);padding:9px 10px;text-align:center;}
 .mo-tbl tfoot td.mo-name{text-align:left;color:var(--pu2);font-size:13px;padding-left:12px;}
 .mo-tbl tfoot .n-pct{color:var(--pu);}
+.multiselect{position:relative;}
+.multiselect-btn{padding:8px 14px;border:1px solid var(--pu4);border-radius:var(--radius-sm);background:#fff;font-size:12px;min-width:150px;text-align:left;cursor:pointer;color:var(--txt);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.multiselect-btn::after{content:"▾";font-size:10px;color:var(--muted);}
+.multiselect-btn:hover{border-color:var(--pu);}
+.multiselect-btn.has-selection{border-color:var(--pu);color:var(--pu2);font-weight:800;background:var(--pu5);}
+.multiselect-panel{display:none;position:absolute;top:112%;left:0;background:#fff;border:1px solid var(--pu4);border-radius:var(--radius-sm);box-shadow:0 10px 28px rgba(124,58,237,.22);padding:8px;z-index:30;max-height:240px;overflow-y:auto;min-width:200px;}
+.multiselect-panel.open{display:block;}
+.multiselect-panel label{display:flex;gap:6px;align-items:center;font-size:12px;padding:6px 6px;border-radius:6px;cursor:pointer;font-weight:400;}
+.multiselect-panel label:hover{background:var(--pu5);}
+.multiselect-actions{display:flex;justify-content:space-between;padding:4px;border-top:1px solid #f0ecfb;margin-top:4px;}
+.multiselect-actions button{font-size:11px;background:none;border:none;color:var(--pu);cursor:pointer;font-weight:700;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,10,60,.5);z-index:200;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal-panel{background:#fff;border-radius:var(--radius);max-width:640px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 30px 70px rgba(30,10,60,.35);overflow:hidden;animation:fadeUp .15s ease;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--pu4);background:var(--pu5);flex-wrap:wrap;}
+.modal-header h4{font-size:15px;font-weight:800;color:var(--txt);}
+.modal-actions button{padding:7px 15px;border-radius:var(--radius-sm);border:1px solid var(--pu4);background:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s ease;}
+.modal-actions button:hover{border-color:var(--pu);color:var(--pu);}
+.modal-body{padding:6px 22px 18px;overflow:auto;}
+.drill-row{cursor:zoom-in;}
+.drill-row:hover td{background:var(--pu5) !important;}
+.drill-field{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #F3F4F6;font-size:13px;}
+.drill-field:last-child{border-bottom:none;}
+.drill-field .k{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;}
+.drill-field .v{color:var(--txt);font-weight:700;text-align:right;}
 </style>
 </head>
 <body>
@@ -370,6 +395,27 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
           <button class="seg pass"   onclick="setRawSeg('pass',this)">Passed F10</button>
           <button class="seg fail"   onclick="setRawSeg('fail',this)">Under F10</button>
         </div>
+        <div class="multiselect" id="ms-trainer">
+          <button type="button" class="multiselect-btn" id="ms-trainer-btn" onclick="toggleMultiselect('trainer')">All Trainers</button>
+          <div class="multiselect-panel" id="ms-trainer-panel">
+            <div class="ms-checks"></div>
+            <div class="multiselect-actions"><button type="button" onclick="msSelectAll('trainer')">Select all</button><button type="button" onclick="msSelectNone('trainer')">Clear</button></div>
+          </div>
+        </div>
+        <div class="multiselect" id="ms-city">
+          <button type="button" class="multiselect-btn" id="ms-city-btn" onclick="toggleMultiselect('city')">All Cities</button>
+          <div class="multiselect-panel" id="ms-city-panel">
+            <div class="ms-checks"></div>
+            <div class="multiselect-actions"><button type="button" onclick="msSelectAll('city')">Select all</button><button type="button" onclick="msSelectNone('city')">Clear</button></div>
+          </div>
+        </div>
+        <div class="multiselect" id="ms-month">
+          <button type="button" class="multiselect-btn" id="ms-month-btn" onclick="toggleMultiselect('month')">All Months</button>
+          <div class="multiselect-panel" id="ms-month-panel">
+            <div class="ms-checks"></div>
+            <div class="multiselect-actions"><button type="button" onclick="msSelectAll('month')">Select all</button><button type="button" onclick="msSelectNone('month')">Clear</button></div>
+          </div>
+        </div>
         <input class="search-inp" id="rawSearch" placeholder="🔍 Name, ID, trainer, city…" oninput="rawPage=1;renderRaw()">
       </div>
     </div>
@@ -399,6 +445,16 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 </div>
 </div>
 
+<div class="modal-overlay" id="drillModal" onclick="if(event.target===this)closeDrilldown()">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h4 id="drillModalTitle">Provider Detail</h4>
+      <div class="modal-actions"><button type="button" onclick="closeDrilldown()">Close ✕</button></div>
+    </div>
+    <div class="modal-body" id="drillModalBody"></div>
+  </div>
+</div>
+
 <script>
 // ── LOCKED CREDENTIALS ────────────────────────────────────────
 const REDASH_QUERY_URL='https://jarvis.urbanclap.com/queries/560089/source';
@@ -416,6 +472,8 @@ const GH_TOKEN='github_pat_11CCBLLNQ'+'0v5JrdeSKg9i4_nxQz6SiX5E2sTYc09gUhw7Lqiv4
 let RAW=[],charts={};
 let trSeg='all',citySeg='all',moSeg='all',hmSeg='all',rawSeg='all';
 let rawPage=1;const RAW_PAGE=50;
+let RAW_PAGE_CACHE=[];
+let MULTI_FILTER={trainer:new Set(),city:new Set(),month:new Set()};
 let sortState={trainer:{col:'PASS_RATE',asc:false},city:{col:'TOTAL',asc:false},monthly:{col:'DIM',asc:true},raw:{col:'APPROVAL_DATE',asc:false}};
 let CROSS_FILTER={trainer:null,city:null,month:null};
 let activeTab='overview';
@@ -524,7 +582,6 @@ function processData(rows,fromCache){
   const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
   const cityLabel=hasCityCol?'City':'Category';
   set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');set('city-chart-title','Volume by '+cityLabel);
-  document.getElementById('city-fallback-note').style.display=hasCityCol?'none':'block';
 
   // Month dropdowns
   const months=[...new Set(RAW.map(r=>r.LIVE_MONTH).filter(m=>m&&m!=='Unknown'))].sort();
@@ -534,6 +591,7 @@ function processData(rows,fromCache){
     sel.innerHTML='<option value="">'+lbl+'</option>';
     months.forEach(m=>{const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
   });
+  populateMultiFilters();
 
   document.getElementById('emptyState').style.display='none';
   document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
@@ -588,6 +646,7 @@ async function loadSharedData(){
       sel.innerHTML='<option value="">'+lbl+'</option>';
       months.forEach(function(m){const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
     });
+    populateMultiFilters();
     const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
     const cityLabel=hasCityCol?'City':'Category';
     set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');
@@ -637,10 +696,10 @@ window.addEventListener('load',function(){
             sel.innerHTML='<option value="">'+lbl+'</option>';
             months.forEach(function(m){const o=document.createElement('option');o.value=o.textContent=m;sel.appendChild(o);});
           });
+          populateMultiFilters();
           const hasCityCol=RAW.some(r=>r['CITY']&&r['CITY']!=='');
           const cityLabel=hasCityCol?'City':'Category';
           set('city-dim-label',cityLabel+' View');set('city-tbl-title',cityLabel+' Summary');
-          document.getElementById('city-fallback-note').style.display=hasCityCol?'none':'block';
           document.getElementById('emptyState').style.display='none';
           document.getElementById('panel-overview').style.display='block';
           const badge=document.getElementById('hdrBadge');
@@ -835,6 +894,75 @@ function filterBySeg(data,seg){
   if(seg==='fail')return data.filter(r=>r.F10==='Fail');
   return data;
 }
+
+// ── MULTISELECT FILTERS (Trainer / City / Month) ───────────────
+function populateMultiFilters(){
+  const dims=[['trainer','TRAINERS_NAME'],['city','_CITY'],['month','LIVE_MONTH']];
+  dims.forEach(function(d){
+    const key=d[0],field=d[1];
+    const panel=document.getElementById('ms-'+key+'-panel');
+    if(!panel)return;
+    const values=[...new Set(RAW.map(function(r){return r[field];}).filter(function(v){return v&&v!=='Unknown';}))].sort();
+    const checksEl=panel.querySelector('.ms-checks');
+    checksEl.innerHTML=values.map(function(v){return '<label><input type="checkbox" value="'+esc(v)+'" onchange="msToggle(\''+key+'\',this)">'+esc(v)+'</label>';}).join('');
+    MULTI_FILTER[key]=new Set();
+    updateMultiselectLabel(key);
+  });
+}
+function msToggle(dim,checkbox){
+  if(checkbox.checked)MULTI_FILTER[dim].add(checkbox.value);else MULTI_FILTER[dim].delete(checkbox.value);
+  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+}
+function msSelectAll(dim){
+  const panel=document.getElementById('ms-'+dim+'-panel');
+  panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=true;MULTI_FILTER[dim].add(cb.value);});
+  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+}
+function msSelectNone(dim){
+  const panel=document.getElementById('ms-'+dim+'-panel');
+  panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+  MULTI_FILTER[dim].clear();
+  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+}
+function updateMultiselectLabel(dim){
+  const btn=document.getElementById('ms-'+dim+'-btn');
+  if(!btn)return;
+  const n=MULTI_FILTER[dim].size;
+  const plural=dim==='trainer'?'Trainers':dim==='city'?'Cities':'Months';
+  if(n===0)btn.textContent='All '+plural;
+  else if(n===1)btn.textContent=[...MULTI_FILTER[dim]][0];
+  else btn.textContent=n+' '+plural+' selected';
+  btn.classList.toggle('has-selection',n>0);
+}
+function toggleMultiselect(dim){
+  const panel=document.getElementById('ms-'+dim+'-panel');
+  document.querySelectorAll('.multiselect-panel').forEach(function(p){if(p!==panel)p.classList.remove('open');});
+  panel.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  document.querySelectorAll('.multiselect').forEach(function(wrap){
+    if(!wrap.contains(e.target)){const p=wrap.querySelector('.multiselect-panel');if(p)p.classList.remove('open');}
+  });
+});
+
+// ── DRILLDOWN MODAL ───────────────────────────────────────────
+function openDrilldown(r){
+  if(!r)return;
+  document.getElementById('drillModalTitle').textContent=r.PROVIDER_NAME||'Provider Detail';
+  const fields=[
+    ['Provider ID',r.PRO_ID],['Provider Name',r.PROVIDER_NAME],['Live Month',r.LIVE_MONTH],
+    ['Trainer',r.TRAINERS_NAME],['City',r['_CITY']],['Module',r.MODULE_KEY],
+    ['Approval Date',r.APPROVAL_DATE],['Total Ratings',r.TOTAL_RATINGS],['F10 Rating',r.F10_RATING],
+    ['F10 Result',r.F10_RESULT||r.F10],['F10 Status',r.F10_STATUS_RAW]
+  ];
+  document.getElementById('drillModalBody').innerHTML=fields.map(function(f){
+    const v=(f[1]===undefined||f[1]===null||f[1]==='')?'—':f[1];
+    return '<div class="drill-field"><span class="k">'+esc(f[0])+'</span><span class="v">'+esc(v)+'</span></div>';
+  }).join('');
+  document.getElementById('drillModal').classList.add('open');
+}
+function closeDrilldown(){document.getElementById('drillModal').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrilldown();});
 function ratingColor(v){return v===null?'#E5E7EB':v>=4.7?GREEN:v>=4.3?AMBER:RED;}
 function passRateColor(v){return v>=70?GREEN:v>=40?AMBER:RED;}
 function killChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
@@ -1095,6 +1223,9 @@ function getFilteredRaw(){
   if(CROSS_FILTER.trainer)data=data.filter(r=>r.TRAINERS_NAME===CROSS_FILTER.trainer);
   if(CROSS_FILTER.city)data=data.filter(r=>r['_CITY']===CROSS_FILTER.city);
   if(CROSS_FILTER.month)data=data.filter(r=>r.LIVE_MONTH===CROSS_FILTER.month);
+  if(MULTI_FILTER.trainer.size)data=data.filter(r=>MULTI_FILTER.trainer.has(r.TRAINERS_NAME));
+  if(MULTI_FILTER.city.size)data=data.filter(r=>MULTI_FILTER.city.has(r['_CITY']));
+  if(MULTI_FILTER.month.size)data=data.filter(r=>MULTI_FILTER.month.has(r.LIVE_MONTH));
   const q=((document.getElementById('rawSearch')||{}).value||'').toLowerCase().trim();
   if(q)data=data.filter(r=>r.PROVIDER_NAME.toLowerCase().includes(q)||r.PRO_ID.toLowerCase().includes(q)||r.TRAINERS_NAME.toLowerCase().includes(q)||r['_CITY'].toLowerCase().includes(q)||(r.MODULE_KEY||'').toLowerCase().includes(q));
   const ss=sortState.raw;
@@ -1106,15 +1237,16 @@ function renderRaw(){
   const totalPages=Math.max(1,Math.ceil(data.length/RAW_PAGE));
   rawPage=Math.min(rawPage,totalPages);
   const page=data.slice((rawPage-1)*RAW_PAGE,rawPage*RAW_PAGE);
+  RAW_PAGE_CACHE=page;
   set('raw-count',data.length.toLocaleString()+' rows');
   set('raw-page-info','Page '+rawPage+' / '+totalPages);
-  document.getElementById('raw-tbody').innerHTML=page.map(r=>{
+  document.getElementById('raw-tbody').innerHTML=page.map((r,__i)=>{
     const rating=r.F10_RATING!==''&&!isNaN(parseFloat(r.F10_RATING))?parseFloat(r.F10_RATING):null;
     const bc=ratingColor(rating),bw=rating?Math.min(100,((rating-1)/4)*100):0;
     const isPassed=r.F10==='Pass';
     const rawStatus=r.F10_STATUS_RAW||'—';
     const statusClass=rawStatus.toLowerCase().includes('completed')?'pass':rawStatus.toLowerCase().includes('under')?'under':'fail';
-    return '<tr class="'+(isPassed?'pass-row':'fail-row')+'">'
+    return '<tr class="drill-row '+(isPassed?'pass-row':'fail-row')+'" onclick="openDrilldown(RAW_PAGE_CACHE['+__i+'])">'
       +'<td><b>'+esc(r.PROVIDER_NAME)+'</b></td>'
       +'<td style="font-size:10px;color:#9CA3AF;font-family:monospace">'+esc(r.PRO_ID.slice(-10))+'</td>'
       +'<td>'+esc(r.LIVE_MONTH)+'</td>'
