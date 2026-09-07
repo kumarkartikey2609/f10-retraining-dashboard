@@ -167,6 +167,7 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 .mo-tbl thead th.g1{background:#1E4A8A;} .mo-tbl thead th.g2{background:#7C2D12;}
 .mo-tbl thead th.g3{background:#14532D;} .mo-tbl thead th.g4{background:#7F1D1D;}
 .mo-tbl thead th.g5{background:#3B0764;} .mo-tbl thead th.g6{background:#4C1D95;}
+.mo-tbl thead th.g7{background:#065F46;} .mo-tbl thead th.g8{background:#991B1B;}
 .mo-tbl tbody tr:nth-child(even){background:#FAFAFA;}
 .mo-tbl tbody tr:hover{background:var(--pu4);}
 .mo-tbl td{padding:8px 10px;border-bottom:1px solid #F0F0F0;text-align:center;vertical-align:middle;}
@@ -176,6 +177,7 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
 .mo-tbl td.g1 .n-main{color:#1E4A8A;} .mo-tbl td.g2 .n-main{color:#7C2D12;}
 .mo-tbl td.g3 .n-main{color:#14532D;} .mo-tbl td.g4 .n-main{color:#7F1D1D;}
 .mo-tbl td.g5 .n-main{color:#4C1D95;} .mo-tbl td.g6 .n-main{color:#5B21B6;}
+.mo-tbl td.g7 .n-main{color:#065F46;} .mo-tbl td.g8 .n-main{color:#991B1B;}
 .mo-tbl tfoot td{background:var(--pu5);font-weight:800;border-top:2px solid var(--pu3);padding:9px 10px;text-align:center;}
 .mo-tbl tfoot td.mo-name{text-align:left;color:var(--pu2);font-size:13px;padding-left:12px;}
 .mo-tbl tfoot .n-pct{color:var(--pu);}
@@ -304,30 +306,52 @@ tr.pass-row td{background:#F0FDF4;}tr.fail-row td{background:#FFF5F5;}
   </div>
 </div>
 
-<!-- TRAINER (three tile columns) -->
+<!-- TRAINER (summary table) -->
 <div class="tab-panel" id="panel-trainer" style="display:none">
   <div class="sec-hdr">
     <div class="sec-title">👤 Trainer Performance</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="multiselect" id="ms-trmo">
+        <button type="button" class="multiselect-btn" id="ms-trmo-btn" onclick="toggleMultiselect('trmo')">All Months</button>
+        <div class="multiselect-panel" id="ms-trmo-panel">
+          <div class="ms-checks"></div>
+          <div class="multiselect-actions"><button type="button" onclick="msSelectAll('trmo')">Select all</button><button type="button" onclick="msSelectNone('trmo')">Clear</button></div>
+        </div>
+      </div>
       <input class="search-inp" id="trSearch" placeholder="🔍 Search trainer…" oninput="renderTrainer()" style="width:200px">
       <button class="export-btn" onclick="exportTrainerCSV()">⬇ Export</button>
     </div>
   </div>
-  <div class="tr-tiles-wrap">
-    <div class="tr-tile-col">
-      <div class="tr-tile-col-hdr completed">✅ F10 Completed</div>
-      <div class="tr-tile-col-sub" id="tr-completed-count">Partners with ≥ 10 F10 ratings</div>
-      <div class="tr-tile-cards" id="tr-completed-tiles"></div>
-    </div>
-    <div class="tr-tile-col">
-      <div class="tr-tile-col-hdr under">⏳ Under F10</div>
-      <div class="tr-tile-col-sub" id="tr-under-count">Partners with &lt; 10 F10 ratings</div>
-      <div class="tr-tile-cards" id="tr-under-tiles"></div>
-    </div>
-    <div class="tr-tile-col">
-      <div class="tr-tile-col-hdr overall">📊 Overall</div>
-      <div class="tr-tile-col-sub" id="tr-overall-count">All partners combined</div>
-      <div class="tr-tile-cards" id="tr-overall-tiles"></div>
+  <div class="tbl-card">
+    <div class="mo-tbl-wrap">
+      <table class="mo-tbl">
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align:left;padding-left:12px;min-width:150px">Trainer</th>
+            <th rowspan="2">Total<br>F10</th>
+            <th colspan="2" class="g1" style="border-left:2px solid rgba(255,255,255,.2)">F10 Completed</th>
+            <th colspan="2" class="g3" style="border-left:2px solid rgba(255,255,255,.2)">Completed — Pass</th>
+            <th colspan="2" class="g4" style="border-left:2px solid rgba(255,255,255,.2)">Completed — Fail</th>
+            <th colspan="2" class="g2" style="border-left:2px solid rgba(255,255,255,.2)">Under F10</th>
+            <th colspan="2" class="g7" style="border-left:2px solid rgba(255,255,255,.2)">Under — Pass</th>
+            <th colspan="2" class="g8" style="border-left:2px solid rgba(255,255,255,.2)">Under — Fail</th>
+            <th colspan="2" class="g5" style="border-left:2px solid rgba(255,255,255,.2)">Overall Pass</th>
+            <th colspan="2" class="g6" style="border-left:2px solid rgba(255,255,255,.2)">Overall Fail</th>
+          </tr>
+          <tr>
+            <th class="g1">Count</th><th class="g1">% of Total</th>
+            <th class="g3">Count</th><th class="g3">% of Completed</th>
+            <th class="g4">Count</th><th class="g4">% of Completed</th>
+            <th class="g2">Count</th><th class="g2">% of Total</th>
+            <th class="g7">Count</th><th class="g7">% of Under</th>
+            <th class="g8">Count</th><th class="g8">% of Under</th>
+            <th class="g5">Count</th><th class="g5">% of Total</th>
+            <th class="g6">Count</th><th class="g6">% of Total</th>
+          </tr>
+        </thead>
+        <tbody id="tr-tbody"></tbody>
+        <tfoot id="tr-tfoot"></tfoot>
+      </table>
     </div>
   </div>
 </div>
@@ -473,7 +497,7 @@ let RAW=[],charts={};
 let trSeg='all',citySeg='all',moSeg='all',hmSeg='all',rawSeg='all';
 let rawPage=1;const RAW_PAGE=50;
 let RAW_PAGE_CACHE=[];
-let MULTI_FILTER={trainer:new Set(),city:new Set(),month:new Set()};
+let MULTI_FILTER={trainer:new Set(),city:new Set(),month:new Set(),trmo:new Set()};
 let sortState={trainer:{col:'PASS_RATE',asc:false},city:{col:'TOTAL',asc:false},monthly:{col:'DIM',asc:true},raw:{col:'APPROVAL_DATE',asc:false}};
 let CROSS_FILTER={trainer:null,city:null,month:null};
 let activeTab='overview';
@@ -897,7 +921,7 @@ function filterBySeg(data,seg){
 
 // ── MULTISELECT FILTERS (Trainer / City / Month) ───────────────
 function populateMultiFilters(){
-  const dims=[['trainer','TRAINERS_NAME'],['city','_CITY'],['month','LIVE_MONTH']];
+  const dims=[['trainer','TRAINERS_NAME'],['city','_CITY'],['month','LIVE_MONTH'],['trmo','LIVE_MONTH']];
   dims.forEach(function(d){
     const key=d[0],field=d[1];
     const panel=document.getElementById('ms-'+key+'-panel');
@@ -909,20 +933,21 @@ function populateMultiFilters(){
     updateMultiselectLabel(key);
   });
 }
+const MS_REFRESH={trainer:function(){rawPage=1;renderRaw();},city:function(){rawPage=1;renderRaw();},month:function(){rawPage=1;renderRaw();},trmo:function(){renderTrainer();}};
 function msToggle(dim,checkbox){
   if(checkbox.checked)MULTI_FILTER[dim].add(checkbox.value);else MULTI_FILTER[dim].delete(checkbox.value);
-  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+  updateMultiselectLabel(dim);(MS_REFRESH[dim]||function(){})();
 }
 function msSelectAll(dim){
   const panel=document.getElementById('ms-'+dim+'-panel');
   panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=true;MULTI_FILTER[dim].add(cb.value);});
-  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+  updateMultiselectLabel(dim);(MS_REFRESH[dim]||function(){})();
 }
 function msSelectNone(dim){
   const panel=document.getElementById('ms-'+dim+'-panel');
   panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
   MULTI_FILTER[dim].clear();
-  updateMultiselectLabel(dim);rawPage=1;renderRaw();
+  updateMultiselectLabel(dim);(MS_REFRESH[dim]||function(){})();
 }
 function updateMultiselectLabel(dim){
   const btn=document.getElementById('ms-'+dim+'-btn');
@@ -1079,75 +1104,83 @@ function exportOverviewCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='monthly_f10_overview.csv';a.click();
 }
 
-// ── TRAINER (three tile columns) ────────────────────────────────
-function setTrainerSeg(seg,btn){}
+// ── TRAINER (summary table) ─────────────────────────────────────
+function computeTrainerStats(data){
+  const map={};
+  data.forEach(r=>{
+    const t=r.TRAINERS_NAME||'Unknown';
+    if(!map[t])map[t]={name:t,total:0,comp:0,compPass:0,compFail:0,under:0,underPass:0,underFail:0,ovPass:0,ovFail:0};
+    const m=map[t];
+    m.total++;
+    const isComp=r.F10_COMPLETION==='Completed';
+    const isPass=r.F10==='Pass';
+    if(isComp){m.comp++;if(isPass)m.compPass++;else m.compFail++;}
+    else{m.under++;if(isPass)m.underPass++;else m.underFail++;}
+    if(isPass)m.ovPass++;else m.ovFail++;
+  });
+  return Object.values(map);
+}
+function trainerFilteredData(){
+  let data=RAW;
+  if(MULTI_FILTER.trmo.size)data=data.filter(r=>MULTI_FILTER.trmo.has(r.LIVE_MONTH));
+  return data;
+}
 function renderTrainer(){
-  const q=((document.getElementById('trSearch')||{}).value||''). toLowerCase().trim();
-  const pct=(n,d)=>d?parseFloat(((n/d)*100).toFixed(1)):0;
+  const q=((document.getElementById('trSearch')||{}).value||'').toLowerCase().trim();
+  const pct=(n,d)=>d?((n/d)*100).toFixed(1):'0.0';
+  let arr=computeTrainerStats(trainerFilteredData());
+  if(q)arr=arr.filter(t=>t.name.toLowerCase().includes(q));
+  arr.sort((a,b)=>b.total-a.total);
 
-  function buildTiles(data,containerId,countId){
-    const map={};
-    data.forEach(r=>{
-      const t=r.TRAINERS_NAME||'Unknown';
-      if(!map[t])map[t]={name:t,total:0,pass:0,fail:0};
-      map[t].total++;
-      if(r.F10==='Pass')map[t].pass++;else map[t].fail++;
-    });
-    let arr=Object.values(map).sort((a,b)=>b.total-a.total);
-    if(q)arr=arr.filter(t=>t.name.toLowerCase().includes(q));
-    const el=document.getElementById(containerId);
-    const cnt=document.getElementById(countId);
-    if(cnt)cnt.textContent=arr.length+' trainer'+(arr.length===1?'':' s')+' · '+data.length.toLocaleString()+' providers';
-    if(!arr.length){el.innerHTML='<div class="tr-tiles-empty">No trainers found</div>';return;}
-    el.innerHTML=arr.map(t=>{
-      const passR=pct(t.pass,t.total);
-      const failR=pct(t.fail,t.total);
-      return '<div class="tr-card">'
-        +'<div class="tr-card-name">'+esc(t.name)+'</div>'
-        +'<div class="tr-card-total">Total Providers: <b>'+t.total+'</b></div>'
-        +'<div class="tr-card-bars">'
-        +'<div class="tr-pct-row">'
-          +'<span class="tr-pct-label pass">Pass</span>'
-          +'<div class="tr-pct-bar-bg"><div class="tr-pct-bar-fill pass" style="width:'+passR+'%"></div></div>'
-          +'<span class="tr-pct-val pass">'+t.pass+' ('+passR+'%)</span>'
-        +'</div>'
-        +'<div class="tr-pct-row">'
-          +'<span class="tr-pct-label fail">Fail</span>'
-          +'<div class="tr-pct-bar-bg"><div class="tr-pct-bar-fill fail" style="width:'+failR+'%"></div></div>'
-          +'<span class="tr-pct-val fail">'+t.fail+' ('+failR+'%)</span>'
-        +'</div>'
-        +'</div>'
-        +'</div>';
-    }).join('');
+  const tbody=document.getElementById('tr-tbody');
+  const tfoot=document.getElementById('tr-tfoot');
+  if(!arr.length){
+    tbody.innerHTML='<tr><td colspan="18" style="text-align:center;color:var(--muted);padding:20px">No trainers found</td></tr>';
+    if(tfoot)tfoot.innerHTML='';
+    return;
   }
+  const cellPair=(cls,n,base)=>'<td class="'+cls+'"><span class="n-main">'+n+'</span><span class="n-pct">'+pct(n,base)+'%</span></td><td class="'+cls+'"><span class="n-main">'+pct(n,base)+'%</span></td>';
+  const rowHtml=(name,t)=>'<tr>'
+      +'<td class="mo-name">'+esc(name)+'</td>'
+      +'<td><span class="n-main">'+t.total+'</span></td>'
+      +cellPair('g1',t.comp,t.total)
+      +cellPair('g3',t.compPass,t.comp)
+      +cellPair('g4',t.compFail,t.comp)
+      +cellPair('g2',t.under,t.total)
+      +cellPair('g7',t.underPass,t.under)
+      +cellPair('g8',t.underFail,t.under)
+      +cellPair('g5',t.ovPass,t.total)
+      +cellPair('g6',t.ovFail,t.total)
+      +'</tr>';
 
-  buildTiles(RAW.filter(r=>r.F10_COMPLETION==='Completed'),'tr-completed-tiles','tr-completed-count');
-  buildTiles(RAW.filter(r=>r.F10_COMPLETION==='Under'),'tr-under-tiles','tr-under-count');
-  buildTiles(RAW,'tr-overall-tiles','tr-overall-count');
+  tbody.innerHTML=arr.map(t=>rowHtml(t.name,t)).join('');
+
+  if(tfoot){
+    const T={total:0,comp:0,compPass:0,compFail:0,under:0,underPass:0,underFail:0,ovPass:0,ovFail:0};
+    arr.forEach(t=>{Object.keys(T).forEach(k=>{T[k]+=t[k];});});
+    tfoot.innerHTML=rowHtml('TOTAL',T).replace('<td class="mo-name">','<td class="mo-name">');
+  }
 }
 
 function exportTrainerCSV(){
+  const q=((document.getElementById('trSearch')||{}).value||'').toLowerCase().trim();
   const pct=(n,d)=>d?((n/d)*100).toFixed(1)+'%':'0.0%';
-  function agg(data){
-    const map={};
-    data.forEach(r=>{
-      const t=r.TRAINERS_NAME||'Unknown';
-      if(!map[t])map[t]={name:t,total:0,pass:0,fail:0};
-      map[t].total++;
-      if(r.F10==='Pass')map[t].pass++;else map[t].fail++;
-    });
-    return Object.values(map).sort((a,b)=>b.total-a.total);
-  }
-  const comp=agg(RAW.filter(r=>r.F10_COMPLETION==='Completed'));
-  const und=agg(RAW.filter(r=>r.F10_COMPLETION==='Under'));
-  const overall=agg(RAW);
-  const hdrs=['Trainer','Completed-Total','Completed-Pass','Completed-Pass%','Completed-Fail','Completed-Fail%','Under-Total','Under-Pass','Under-Pass%','Under-Fail','Under-Fail%','Overall-Total','Overall-Pass','Overall-Pass%','Overall-Fail','Overall-Fail%'];
-  const names=[...new Set([...comp.map(t=>t.name),...und.map(t=>t.name),...overall.map(t=>t.name)])].sort();
-  const getRow=(arr,n)=>arr.find(t=>t.name===n)||{total:0,pass:0,fail:0};
-  const rows=[hdrs.join(','),...names.map(n=>{
-    const c=getRow(comp,n),u=getRow(und,n),o=getRow(overall,n);
-    return ['"'+n.replace(/"/g,'\"')+'"',c.total,c.pass,pct(c.pass,c.total),c.fail,pct(c.fail,c.total),u.total,u.pass,pct(u.pass,u.total),u.fail,pct(u.fail,u.total),o.total,o.pass,pct(o.pass,o.total),o.fail,pct(o.fail,o.total)].join(',');
-  })];
+  let arr=computeTrainerStats(trainerFilteredData());
+  if(q)arr=arr.filter(t=>t.name.toLowerCase().includes(q));
+  arr.sort((a,b)=>b.total-a.total);
+  const hdrs=['Trainer','Total F10','F10 Completed','F10 Completed %','Completed - Pass','Completed - Pass %','Completed - Fail','Completed - Fail %','Under F10 Total','Under F10 %','Under - Pass','Under - Pass %','Under - Fail','Under - Fail %','Overall Pass','Overall Pass %','Overall Fail','Overall Fail %'];
+  const rows=[hdrs.join(','),...arr.map(t=>[
+    '"'+t.name.replace(/"/g,'""')+'"',
+    t.total,
+    t.comp,pct(t.comp,t.total),
+    t.compPass,pct(t.compPass,t.comp),
+    t.compFail,pct(t.compFail,t.comp),
+    t.under,pct(t.under,t.total),
+    t.underPass,pct(t.underPass,t.under),
+    t.underFail,pct(t.underFail,t.under),
+    t.ovPass,pct(t.ovPass,t.total),
+    t.ovFail,pct(t.ovFail,t.total)
+  ].join(','))];
   const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='trainer_summary.csv';a.click();
 }
